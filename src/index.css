@@ -1,48 +1,48 @@
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-Thin.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-Thin.woff2') format('woff2');
     font-weight: 300;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-Light.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-Light.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-Regular.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-Regular.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-SemiBold.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-SemiBold.woff2') format('woff2');
     font-weight: 600;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-Bold.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-ExtraBold.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-ExtraBold.woff2') format('woff2');
     font-weight: 800;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-Black.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-Black.woff2') format('woff2');
     font-weight: 850;
     font-style: normal;
 }
 @font-face {
     font-family: 'yekanBakh';
-    src: url('fonts/YekanBakh/YekanBakhNoEn-ExtraBlack.woff') format('woff');
+    src: url('fonts/YekanBakh/YekanBakhNoEn-ExtraBlack.woff2') format('woff2');
     font-weight: 900;
     font-style: normal;
 }
@@ -50,34 +50,34 @@
 
 @font-face {
     font-family: 'vazir';
-    src: url('fonts/Vazir/Vazir-Thin.woff') format('woff');
+    src: url('fonts/Vazir/Vazir-Thin.woff2') format('woff2');
     font-weight: 300;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'vazir';
-    src: url('fonts/Vazir/Vazir-Light.woff') format('woff');
+    src: url('fonts/Vazir/Vazir-Light.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'vazir';
-    src: url('fonts/Vazir/Vazir.woff') format('woff');
+    src: url('fonts/Vazir/Vazir.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
 }
 @font-face {
     font-family: 'vazir';
-    src: url('fonts/Vazir/Vazir-Medium.woff') format('woff');
+    src: url('fonts/Vazir/Vazir-Medium.woff2') format('woff2');
     font-weight: 600;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'vazir';
-    src: url('fonts/Vazir/Vazir-Bold.woff') format('woff');
+    src: url('fonts/Vazir/Vazir-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
 }
@@ -1211,10 +1211,6 @@
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
     font-weight: var(--font-weight-medium);
-  }
-  .font-bold {
-    --tw-font-weight: var(--font-weight-bold);
-    font-weight: var(--font-weight-bold);
   }
 
   .whitespace-nowrap {
