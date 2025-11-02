@@ -83,7 +83,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
         <Button
           variant="outline"
           className="rounded-full gap-2 border-gray-300"
-          onClick={(e) => {
+          onClick={(e : any) => {
             e.stopPropagation();
             setShowShareModal(true);
           }}

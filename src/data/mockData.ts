@@ -73,6 +73,7 @@ export const mockPredictions: Prediction[] = [
       { id: '1', text: 'کشور زدن 1', percentage: 67, voters: 25 },
       { id: '2', text: 'کشور زدن 2', percentage: 67, voters: 25 },
       { id: '3', text: 'کشور زدن 3', percentage: 67, voters: 25 },
+      { id: '4', text: 'کشور زدن 4', percentage: 67, voters: 25 },
     ],
     commentsCount: 123000,
     sharesCount: 123000,

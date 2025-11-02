@@ -31,9 +31,9 @@ export function CommentSection({ comments }: CommentSectionProps) {
 
   return (
     <div className="space-y-4" dir="rtl">
-      <div className="flex items-center justify-between border-b border-border pb-3">
-        <h3>نظرات کاربران</h3>
-        <span className="text-sm text-muted-foreground">{comments.length} نظر</span>
+      <div className="flex items-center justify-between border-b border-border">
+        <h3 className="pb-3">نظرات کاربران</h3>
+        <span className="text-xs text-muted-foreground">{comments.length} نظر</span>
       </div>
       
       {comments.map((comment) => {
@@ -59,7 +59,7 @@ export function CommentSection({ comments }: CommentSectionProps) {
             </div>
 
             {/* Comment Content */}
-            <p className="text-sm text-gray-700 leading-relaxed pr-10">
+            <p className="text-xs text-gray-700 leading-relaxed pr-10">
               {comment.content}
             </p>
 
@@ -79,7 +79,6 @@ export function CommentSection({ comments }: CommentSectionProps) {
               
               <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-[#FF6B35] transition-colors">
                 <MessageCircle className="w-4 h-4" />
-                <span className="text-xs">پاسخ</span>
               </button>
 
               <span className="text-xs text-muted-foreground mr-auto">
