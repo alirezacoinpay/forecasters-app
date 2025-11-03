@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { MessageCircle, Share2, MoreHorizontal, TrendingUp } from 'lucide-react';
+import {
+    MessageCircle,
+    MoreHorizontal,
+    TrendingUp,
+} from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Prediction } from '../data/mockData';
 import { ShareModal } from './ShareModal';
+import ForwardCustomIcon from "./icons/ForwardCustomIcon.tsx";
 
 interface PredictionCardProps {
   prediction: Prediction;
@@ -21,7 +26,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
 
   return (
     <div
-      className="bg-card border-b border-border p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+      className="bg-card border-b border-border px-4 py-2 cursor-pointer hover:bg-accent/50 transition-colors"
       onClick={onClick}
       dir="rtl"
     >
@@ -44,7 +49,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
 
       {/* Question with Badge */}
       <div className="mb-3">
-        <p className="text-sm leading-relaxed  font-medium">{prediction.question}</p>
+        <p className="text-sm font-semibold leading-relaxed  font-medium">{prediction.question}</p>
       </div>
 
       {/* Tags */}
@@ -61,7 +66,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
       </div>
 
       {/* Options */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-3 gap-2 mb-2">
         {prediction.options.map((option) => (
           <div
             key={option.id}
@@ -82,20 +87,20 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
-          className="rounded-full gap-2 border-gray-300"
+          className="rounded-full gap-2 border-gray-300 h-8 items-start"
           onClick={(e : any) => {
             e.stopPropagation();
             setShowShareModal(true);
           }}
         >
-          <span className="text-sm">{formatCount(prediction.sharesCount)}</span>
-          <Share2 className="w-4 h-4" />
+          <span className="text-xs">{formatCount(prediction.sharesCount)}</span>
+            <ForwardCustomIcon className="w-4 h-4"/>
         </Button>
         <Button
           variant="outline"
-          className="rounded-full gap-2 border-gray-300"
+          className="rounded-full gap-2 border-gray-300  h-8 items-start"
         >
-          <span className="text-sm">{formatCount(prediction.commentsCount)}</span>
+          <span className="text-xs">{formatCount(prediction.commentsCount)}</span>
           <MessageCircle className="w-4 h-4" />
         </Button>
       </div>

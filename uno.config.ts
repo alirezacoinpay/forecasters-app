@@ -15,6 +15,10 @@ export default defineConfig({
             black: '850',
             extraBlack: '900',
         },
+        fontFamily: {
+            vazir: 'vazir',
+            yekanBakh: 'yekanBakh',
+        },
     },
 
 // @ts-ignore
