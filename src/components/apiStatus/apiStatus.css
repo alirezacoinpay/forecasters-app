@@ -1,0 +1,62 @@
+.api-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.api-status.loading {
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #0369a1;
+}
+
+.api-status.error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    text-align: center;
+    flex-direction: column;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 0.5rem;
+}
+
+.error-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.error-message h4 {
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.error-message p {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.error-detail {
+    font-size: 0.8rem !important;
+    opacity: 0.7 !important;
+    margin-top: 0.5rem !important;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

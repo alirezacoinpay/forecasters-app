@@ -26,7 +26,7 @@ export function Header({ isVisible, selectedCategory, onCategoryChange }: Header
   return (
     <>
       <header 
-        className={`fixed top-0 left-0 right-0 z-50 bg-background border-b border-border transition-transform duration-300 text-yekanBakh ${
+        className={`fixed top-0 left-0 right-0 z-50 bg-background border-b border-border transition-transform duration-300 text-yekanBakh max-w-2xl mx-auto ${
           isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -50,37 +50,39 @@ export function Header({ isVisible, selectedCategory, onCategoryChange }: Header
             </Button>
           </div>
         </div>
-      </header>
 
-      {/* Dropdown Menu */}
-      {showDropdown && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowDropdown(false)}
-          />
-          <div
-            className="fixed top-[52px] right-4 z-50 bg-background border border-border shadow-lg rounded-2xl"
-            dir="rtl"
-          >
-            <div className="py-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategorySelect(category.id)}
-                  className={`w-full flex items-center justify-right pr-6 pl-14 py-3 hover:bg-gray-100 transition-colors font-semibold ${selectedCategory === category.id ? 'bg-gray-100' : ''}`}
-                >
-                  <HomeIcon className='w-5 h-5' />
-                  <span className={selectedCategory === category.id ? 'text-[#FF6B35] mr-2' : 'mr-2'}>
+          {/* Dropdown Menu */}
+          {showDropdown && (
+              <>
+                  <div
+                      className="fixed inset-0 right-0 z-40"
+                      onClick={() => setShowDropdown(false)}
+                  />
+                  <div
+                      className="fixed top-[52px] right-4 z-50 bg-background border border-border shadow-lg rounded-2xl"
+                      dir="rtl"
+                  >
+                      <div className="py-2">
+                          {categories.map((category) => (
+                              <button
+                                  key={category.id}
+                                  onClick={() => handleCategorySelect(category.id)}
+                                  className={`w-full flex items-center justify-right pr-6 pl-14 py-3 hover:bg-gray-100 transition-colors font-semibold ${selectedCategory === category.id ? 'bg-gray-100' : ''}`}
+                              >
+                                  <HomeIcon className='w-5 h-5' />
+                                  <span className={selectedCategory === category.id ? 'text-[#FF6B35] mr-2' : 'mr-2'}>
                     {category.label}
                   </span>
 
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+                              </button>
+                          ))}
+                      </div>
+                  </div>
+              </>
+          )}
+      </header>
+
+
     </>
   );
 }
