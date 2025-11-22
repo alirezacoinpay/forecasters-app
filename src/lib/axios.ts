@@ -26,7 +26,7 @@ class ApiClient {
                 this.handleRequest(config);
                 return config;
             },
-            (error) => {
+            (error: any) => {
                 return Promise.reject(this.handleError(error));
             }
         );
@@ -37,7 +37,7 @@ class ApiClient {
                 this.handleResponse(response);
                 return response;
             },
-            (error) => {
+            (error: any) => {
                 return Promise.reject(this.handleError(error));
             }
         );
@@ -159,7 +159,7 @@ class ApiClient {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            onUploadProgress: (progressEvent) => {
+            onUploadProgress: (progressEvent: { total: number; loaded: number; }) => {
                 if (onProgress && progressEvent.total) {
                     const progress = (progressEvent.loaded / progressEvent.total) * 100;
                     onProgress(Math.round(progress));
