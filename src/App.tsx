@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
-import { FeedView } from './components/FeedView';
+import { FeedView } from './components/questions/FeedView.tsx';
 import { PredictionDetail } from './components/PredictionDetail';
 import { AddQuestionModal } from './components/AddQuestionModal';
 import { ProfileView } from './components/ProfileView';
-import { mockPredictions, Prediction, categories } from './data/mockData';
+import {Prediction} from "./models/Prediction.ts";
+import { categories } from './data/mockData';
 import { useScrollVisibility } from './hooks/useScrollVisibility';
 
 export default function App() {
@@ -14,14 +15,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'feed' | 'profile'>('feed');
   const [selectedCategory, setSelectedCategory] = useState('political');
   const isNavVisible = useScrollVisibility();
-
-  // Filter predictions based on selected category
-  const filteredPredictions = useMemo(() => {
-    if (selectedCategory === 'political') {
-      return mockPredictions;
-    }
-    return mockPredictions.filter(prediction => prediction.category === selectedCategory);
-  }, [selectedCategory]);
 
   // Handle swipe to change category
   const handleSwipeLeft = () => {
@@ -50,7 +43,6 @@ export default function App() {
       <main className="max-w-2xl mx-auto pb-24">
         {activeTab === 'feed' ? (
           <FeedView
-            predictions={filteredPredictions}
             onPredictionClick={setSelectedPrediction}
             onSwipeLeft={handleSwipeLeft}
             onSwipeRight={handleSwipeRight}

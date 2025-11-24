@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Prediction } from '../data/mockData';
+import {Prediction} from "../models/Prediction.ts";
 import { ShareModal } from './ShareModal';
 import ForwardCustomIcon from "./icons/ForwardCustomIcon.tsx";
 
@@ -38,9 +38,9 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{prediction.timestamp}</span>
+          <span className="text-sm text-muted-foreground">{prediction.timePast}</span>
           <span className="text-sm text-muted-foreground">•</span>
-          <span className="text-sm">{prediction.author}</span>
+          <span className="text-sm">{prediction.user?.name}</span>
           <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
             <TrendingUp className="w-3 h-3 text-white" />
           </div>
@@ -49,7 +49,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
 
       {/* Question with Badge */}
       <div className="mb-3">
-        <p className="text-sm font-semibold leading-relaxed  font-medium">{prediction.question}</p>
+        <p className="text-sm font-semibold leading-relaxed  font-medium">{prediction.title}</p>
       </div>
 
       {/* Tags */}
@@ -58,9 +58,10 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
           <Badge
             key={tag.id}
             variant="outline"
-            className="rounded-md bg-gray-50 border-gray-200 text-gray-700"
+            style={{ backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }}
+            className="rounded-md"
           >
-            {tag.label}
+            {tag.title}
           </Badge>
         ))}
       </div>
@@ -93,7 +94,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
             setShowShareModal(true);
           }}
         >
-          <span className="text-xs">{formatCount(prediction.sharesCount)}</span>
+          <span className="text-xs">{formatCount(prediction.questionForwardCount)}</span>
             <ForwardCustomIcon className="w-4 h-4"/>
         </Button>
         <Button

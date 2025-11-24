@@ -1,4 +1,10 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+    AxiosInstance,
+    AxiosRequestConfig,
+    AxiosResponse,
+    InternalAxiosRequestConfig,
+    AxiosError,
+} from 'axios';
 import { ApiResponse, ApiError } from '../types/api';
 
 class ApiClient {
@@ -6,7 +12,7 @@ class ApiClient {
     private readonly baseURL: string;
 
     constructor() {
-        this.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://api.example.com';
+        this.baseURL = import.meta.env.VITE_API_BASE_URL;
 
         this.client = axios.create({
             baseURL: this.baseURL,
@@ -20,38 +26,30 @@ class ApiClient {
     }
 
     private setupInterceptors(): void {
-        // Request interceptor
         this.client.interceptors.request.use(
             (config: InternalAxiosRequestConfig) => {
                 this.handleRequest(config);
                 return config;
             },
-            (error: any) => {
-                return Promise.reject(this.handleError(error));
-            }
+            (error: any) => Promise.reject(this.handleError(error))
         );
 
-        // Response interceptor
         this.client.interceptors.response.use(
             (response: AxiosResponse) => {
                 this.handleResponse(response);
                 return response;
             },
-            (error: any) => {
-                return Promise.reject(this.handleError(error));
-            }
+            (error: AxiosError) => Promise.reject(this.handleError(error))
         );
     }
 
     private handleRequest(config: InternalAxiosRequestConfig): void {
-        // Add auth token to headers
         const token = this.getAuthToken();
         if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
 
-        // Log request in development
-        if (import.meta.env.VITE_API_BASE_URL) {
+        if (import.meta.env.DEV) {
             console.log('📤 API Request:', {
                 method: config.method?.toUpperCase(),
                 url: config.url,
@@ -62,8 +60,7 @@ class ApiClient {
     }
 
     private handleResponse(response: AxiosResponse): void {
-        // Log response in development
-        if (import.meta.env.VITE_API_BASE_URL) {
+        if (import.meta.env.DEV) {
             console.log('📥 API Response:', {
                 status: response.status,
                 data: response.data,
@@ -72,21 +69,17 @@ class ApiClient {
         }
     }
 
-    private handleError(error: any): ApiError {
-        // Enhanced error handling
+    private handleError(error: AxiosError | any): ApiError {
         const apiError: ApiError = {
-            message: error.message || 'An unknown error occurred',
+            message: error.response?.data?.message || error.message || 'An unknown error occurred',
             status: error.response?.status || 0,
-            code: error.code,
-            details: error.response?.data,
+            data: error.response?.data,
         };
 
-        // Log error in development
-        if (import.meta.env.VITE_API_BASE_URL) {
+        if (import.meta.env.DEV) {
             console.error('❌ API Error:', apiError);
         }
 
-        // Handle specific status codes
         this.handleErrorStatus(apiError);
 
         return apiError;
@@ -107,7 +100,7 @@ class ApiClient {
                 console.error('خطای سرور داخلی');
                 break;
             default:
-                if (error.code === 'NETWORK_ERROR') {
+                if (error.message?.toLowerCase().includes('network')) {
                     console.error('خطای شبکه - اتصال اینترنت را بررسی کنید');
                 }
         }
@@ -116,7 +109,6 @@ class ApiClient {
     private handleUnauthorized(): void {
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
-        // Redirect to login page
         window.location.href = '/login';
     }
 
@@ -156,18 +148,19 @@ class ApiClient {
         onProgress?: (progress: number) => void
     ): Promise<ApiResponse<T>> {
         const response = await this.client.post<ApiResponse<T>>(url, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-            onUploadProgress: (progressEvent: { total: number; loaded: number; }) => {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: (progressEvent) => {
                 if (onProgress && progressEvent.total) {
                     const progress = (progressEvent.loaded / progressEvent.total) * 100;
                     onProgress(Math.round(progress));
                 }
             },
         });
+
+        // Axios response.data is of type ApiResponse<T>, so just return it
         return response.data;
     }
+
 }
 
 export const apiClient = new ApiClient();

@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
-  predictionId: string;
+  predictionId: number;
 }
 
 export function ShareModal({ isOpen, onClose, predictionId }: ShareModalProps) {

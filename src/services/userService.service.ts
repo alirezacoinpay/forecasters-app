@@ -15,20 +15,20 @@ export const userService = {
     },
 
     // Get user by ID
-    async getUserById(id: string): Promise<User> {
-        const response = await apiClient.get<User>(`/users/${id}`);
+    async getUserById(id: string): Promise<ApiResponse<User>> {
+        const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
         return response.data;
     },
 
     // Update user
-    async updateUser(id: string, userData: UpdateUserData): Promise<User> {
-        const response = await apiClient.put<User>(`/users/${id}`, userData);
+    async updateUser(id: string, userData: UpdateUserData): Promise<ApiResponse<User>> {
+        const response = await apiClient.put<ApiResponse<User>>(`/users/${id}`, userData);
         return response.data;
     },
 
     // Delete user
-    async deleteUser(id: string): Promise<ApiResponse> {
-        const response = await apiClient.delete<ApiResponse>(`/users/${id}`);
+    async deleteUser(id: string): Promise<ApiResponse<null>> {
+        const response = await apiClient.delete<ApiResponse<null>>(`/users/${id}`);
         return response.data;
     },
 
@@ -37,11 +37,11 @@ export const userService = {
         id: string,
         file: File,
         onProgress?: (progress: number) => void
-    ): Promise<{ avatarUrl: string }> {
+    ): Promise<ApiResponse<{ avatarUrl: string }>> {
         const formData = new FormData();
         formData.append('avatar', file);
 
-        const response = await apiClient.upload<{ avatarUrl: string }>(
+        const response = await apiClient.upload<ApiResponse<{ avatarUrl: string }>>(
             `/users/${id}/avatar`,
             formData,
             onProgress
@@ -54,8 +54,8 @@ export const userService = {
         id: string,
         currentPassword: string,
         newPassword: string
-    ): Promise<ApiResponse> {
-        const response = await apiClient.post<ApiResponse>(`/users/${id}/change-password`, {
+    ): Promise<ApiResponse<null>> {
+        const response = await apiClient.post<ApiResponse<null>>(`/users/${id}/change-password`, {
             currentPassword,
             newPassword,
         });

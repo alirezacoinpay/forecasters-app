@@ -1,25 +1,67 @@
 // انواع پایه برای API
-export interface ApiResponse<T = any> {
+// =========================
+// BASE API RESPONSE
+// =========================
+export interface ApiResponse<T> {
+    success: boolean;
     data: T;
     message?: string;
-    status: number;
-    success: boolean;
 }
 
-export interface PaginatedResponse<T = any> extends ApiResponse<T> {
-    pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
+// =========================
+// LIST RESPONSE (non paginated)
+// =========================
+export type ListResponse<T> = ApiResponse<T[]>;
+
+// =========================
+// PAGINATED RESPONSE
+// =========================
+export interface PaginationLinks {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+}
+
+export interface PaginationMeta {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+    path: string;
+    links: Array<{
+        url: string | null;
+        label: string;
+        page: number | null;
+        active: boolean;
+    }>
+}
+
+export interface PaginatedData<T> {
+    data: T[];
+    links: PaginationLinks;
+    meta: PaginationMeta;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    meta: {
+        current_page: number;
+        per_page: number;
+        last_page: number;
     };
+    links: any;
 }
 
-export interface ApiError {
+// =========================
+// API ERROR
+// =========================
+export interface ApiError<T = any> {
     message: string;
     status: number;
-    code?: string;
-    details?: any;
+    data?: T;
 }
 
 export interface RequestConfig {
@@ -67,4 +109,60 @@ export interface UpdateUserData {
     name?: string;
     email?: string;
     role?: string;
+}
+
+export interface Prediction {
+  id: string;
+  author: string;
+  timestamp: string;
+  question: string;
+  description?: string;
+  detailedDescription?: string;
+  category: string;
+  tags: Tag[];
+  options: PredictionOption[];
+  commentsCount: number;
+  sharesCount: number;
+  comments?: Comment[];
+}
+
+export interface PredictionListParams {
+    page?: number;
+    paginate?: number;
+    search?: string;
+    sort?: string;
+}
+
+export interface CreatePredictionData {
+    name?: string;
+    email?: string;
+    role?: string;
+}
+
+export interface UpdatePredictionData {
+    name?: string;
+    email?: string;
+    role?: string;
+}
+
+export interface PredictionOption {
+    id: string;
+    text: string;
+    percentage: number;
+    voters: number;
+}
+
+export interface Tag {
+    id: string;
+    label: string;
+}
+
+export interface Comment {
+    id: string;
+    author: string;
+    content: string;
+    likes: number;
+    replies: number;
+    timestamp: string;
+    avatar?: string;
 }

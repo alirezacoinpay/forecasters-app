@@ -1,3 +1,5 @@
+import {Prediction} from "../types/api.ts";
+
 export interface PredictionOption {
   id: string;
   text: string;
@@ -20,20 +22,20 @@ export interface Comment {
   avatar?: string;
 }
 
-export interface Prediction {
-  id: string;
-  author: string;
-  timestamp: string;
-  question: string;
-  description?: string;
-  detailedDescription?: string;
-  category: string;
-  tags: Tag[];
-  options: PredictionOption[];
-  commentsCount: number;
-  sharesCount: number;
-  comments?: Comment[];
-}
+// export interface Prediction {
+//   id: string;
+//   author: string;
+//   timestamp: string;
+//   question: string;
+//   description?: string;
+//   detailedDescription?: string;
+//   category: string;
+//   tags: Tag[];
+//   options: PredictionOption[];
+//   commentsCount: number;
+//   sharesCount: number;
+//   comments?: Comment[];
+// }
 
 export interface Category {
   id: string;
