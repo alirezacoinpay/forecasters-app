@@ -23,8 +23,7 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
     }
     return count.toString();
   };
-
-  return (
+    return (
     <div
       className="bg-card border-b border-border px-4 py-2 cursor-pointer hover:bg-accent/50 transition-colors"
       onClick={onClick}
@@ -73,12 +72,29 @@ export function PredictionCard({ prediction, onClick }: PredictionCardProps) {
             key={option.id}
             className="bg-blue-50 rounded-lg p-3 flex flex-col items-center gap-2"
           >
-            <div className="flex items-center gap-1 text-sm text-blue-600">
-              <TrendingUp className="w-3 h-3" />
-              <span>{option.percentage}%</span>
-            </div>
+            {/*<div className="flex items-center gap-1 text-sm text-blue-600">*/}
+            {/*  <TrendingUp className="w-3 h-3" />*/}
+            {/*    {(prediction.userPredictionsCount > 0) ?? (<span>{option.questionForwardCount/prediction.userPredictionsCount}%</span>) }*/}
+
+
+            {/*</div>*/}
+
+              {prediction.userPredictionsCount > 0 ? (
+
+                  <div className="flex items-center gap-1 text-sm text-blue-600">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>
+                            {Math.round((option.questionForwardCount / prediction.userPredictionsCount) * 100)}%
+                       </span>
+                  </div>
+              ) : (
+                  <div className="flex items-center gap-1 text-sm text-blue-600">
+
+                  </div>
+              )}
+
             <span className="text-xs text-gray-600">
-              کشور زدن {option.voters}
+                {option.title}
             </span>
           </div>
         ))}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Heart, MessageCircle, TrendingUp, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
-import { Comment } from '../data/mockData';
+import {Comment} from "../models/Comment.ts";
 
 interface CommentSectionProps {
   comments: Comment[];
@@ -17,13 +17,13 @@ export function CommentSection({ comments }: CommentSectionProps) {
     return count.toString();
   };
 
-  const toggleLike = (commentId: string) => {
+  const toggleLike = (commentId: number) => {
     setLikedComments((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(commentId)) {
-        newSet.delete(commentId);
+      if (newSet.has(String(commentId))) {
+        newSet.delete(String(commentId));
       } else {
-        newSet.add(commentId);
+        newSet.add(String(commentId));
       }
       return newSet;
     });
@@ -37,7 +37,8 @@ export function CommentSection({ comments }: CommentSectionProps) {
       </div>
       
       {comments.map((comment) => {
-        const isLiked = likedComments.has(comment.id);
+
+        const isLiked = likedComments.has(String(comment.id));
         return (
           <div key={comment.id} className="space-y-3">
             {/* Comment Header */}
@@ -48,8 +49,8 @@ export function CommentSection({ comments }: CommentSectionProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm truncate">{comment.author}</span>
-                    <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+                    <span className="text-sm truncate">{comment.user?.name}</span>
+                    <span className="text-xs text-muted-foreground">{comment.time_past}</span>
                   </div>
                 </div>
               </div>
@@ -60,7 +61,7 @@ export function CommentSection({ comments }: CommentSectionProps) {
 
             {/* Comment Content */}
             <p className="text-xs text-gray-700 leading-relaxed pr-10">
-              {comment.content}
+              {comment.text}
             </p>
 
             {/* Comment Actions */}
@@ -73,7 +74,7 @@ export function CommentSection({ comments }: CommentSectionProps) {
                   className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
                 />
                 <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
-                  {formatCount(comment.likes + (isLiked ? 1 : 0))}
+                  {formatCount(comment.likesCount + (isLiked ? 1 : 0))}
                 </span>
               </button>
               
@@ -82,7 +83,7 @@ export function CommentSection({ comments }: CommentSectionProps) {
               </button>
 
               <span className="text-xs text-muted-foreground mr-auto">
-                {formatCount(comment.replies)} پاسخ
+                {formatCount(comment.childrenCount)} پاسخ
               </span>
             </div>
 

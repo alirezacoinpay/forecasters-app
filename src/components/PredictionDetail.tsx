@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { TrendingUp, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Prediction } from '../data/mockData';
+import {Prediction} from "../models/Prediction.ts";
 import { CommentSection } from './CommentSection';
 
 interface PredictionDetailProps {
@@ -181,9 +181,9 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
                             <ChevronDown className="w-5 h-5" />
                         </Button>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">{prediction.timestamp}</span>
+                            <span className="text-sm text-muted-foreground">{prediction.timePast}</span>
                             <span className="text-sm text-muted-foreground">•</span>
-                            <span className="text-sm">{prediction.author}</span>
+                            <span className="text-sm">{prediction.user?.name}</span>
                             <div className="w-6 h-6 rounded-full bg-[#FF6B35] flex items-center justify-center">
                                 <TrendingUp className="w-3 h-3 text-white" />
                             </div>
@@ -192,16 +192,17 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
 
                     <div className="px-4 py-6 space-y-6">
                         <div>
-                            <p className="text-sm font-semibold leading-relaxed mb-2">{prediction.question}</p>
+                            <p className="text-sm font-semibold leading-relaxed mb-2">{prediction.title}</p>
 
                             <div className="flex flex-wrap gap-2">
                                 {prediction.tags.map((tag) => (
                                     <Badge
                                         key={tag.id}
                                         variant="outline"
-                                        className="rounded-md bg-gray-50 border-gray-200 text-gray-700"
+                                        style={{ backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }}
+                                        className="rounded-md"
                                     >
-                                        {tag.label}
+                                        {tag.title}
                                     </Badge>
                                 ))}
                             </div>
@@ -216,12 +217,22 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
                                                 selectedOption === option.id ? 'border-[#FF6B35] bg-orange-50' : 'border-gray-200 bg-blue-50'
                                             }`}
                                         >
-                                            <div className="flex items-center justify-center gap-1 text-sm text-blue-600">
-                                                <TrendingUp className="w-3 h-3" />
-                                                <span>{option.percentage}%</span>
-                                            </div>
-                                            <span className="text-xs text-gray-600 block mt-2">
-                        کشور زدن                      {option.voters}
+                                            {prediction.userPredictionsCount > 0 ? (
+
+                                                <div className="flex items-center justify-center gap-1 text-sm text-blue-600">
+                                                    <TrendingUp className="w-3 h-3" />
+                                                    <span>
+                                                        {Math.round((option.questionForwardCount / prediction.userPredictionsCount) * 100)}%
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-1 text-sm text-blue-600">
+
+                                                </div>
+                                            )}
+
+                                            <span className="text-xs text-gray-600">
+                                                {option.title}
                                             </span>
                                         </button>
                                     ))}
@@ -230,36 +241,39 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
                         </div>
 
                         <div className="bg-white rounded-lg border border-border p-4 space-y-4">
-                            {prediction.detailedDescription && (
+                            {prediction.text && (
                                 <div className="space-y-2">
                                     <h4 className="text-sm">توضیحات</h4>
-                                    <p className="text-xs text-gray-600 leading-relaxed">{prediction.detailedDescription}</p>
+                                    <p className="text-xs text-gray-600 leading-relaxed">{prediction.text}</p>
                                 </div>
                             )}
 
-                            <div className="space-y-3">
-                                <h4 className="text-sm text-center">پیش‌بینی کاربران</h4>
-                                <div className="space-y-2">
-                                    {prediction.options.map((option, index) => (
-                                        <div key={option.id} className="space-y-1">
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="text-gray-600">
-                                                  {index + 1}. کشور زدن {option.voters}
-                                                </span>
-                                                <span className="text-[#FF6B35]">نسبت {option.percentage}%</span>
-                                            </div>
-                                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                <div className="h-full bg-[#FF6B35] transition-all" style={{ width: `${option.percentage}%` }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                            {prediction.userPredictionsCount > 0 && (
 
-                        {prediction.comments && prediction.comments.length > 0 && (
+                                <div className="space-y-3">
+                                    <h4 className="text-sm text-center">پیش‌بینی کاربران</h4>
+                                    <div className="space-y-2">
+                                        {prediction.options.map((option, index) => (
+                                            <div key={option.id} className="space-y-1">
+                                                <div className="flex items-center justify-between text-xs">
+                                                <span className="text-gray-600">
+                                                  {index + 1}. {option.userPredictionsCount}
+                                                </span>
+                                                    <span className="text-[#FF6B35]">نسبت {option.percentage}%</span>
+                                                </div>
+                                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-[#FF6B35] transition-all" style={{ width: `${option.percentage}%` }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        {prediction.commentsCount > 0 && (
                             <CommentSection comments={prediction.comments} />
                         )}
+
                     </div>
                 </div>
 

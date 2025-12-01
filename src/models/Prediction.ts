@@ -9,6 +9,7 @@ export class Prediction {
     timePast: string;
     tags: any[];
     options: any[];
+    comments: any[];
     user: any;
     commentsCount: number;
     userPredictionsCount: number;
@@ -25,6 +26,7 @@ export class Prediction {
         this.timePast = data.time_past;
         this.tags = data.tags ?? [];
         this.options = data.questionOptions ?? [];
+        this.comments = data.comments ?? [];
         this.user = data.user ?? null;
         this.commentsCount = data.commentsCount ?? 0;
         this.userPredictionsCount = data.userPredictionsCount ?? 0;
