@@ -1,54 +1,109 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/questions/FeedView.tsx';
-import { PredictionDetail } from './components/PredictionDetail';
-import { AddQuestionModal } from './components/AddQuestionModal';
-import { ProfileView } from './components/ProfileView';
+import { PredictionCardSkeleton } from './components/PredictionCardSkeleton';
 import {Prediction} from "./models/Prediction.ts";
-import { categories } from './data/mockData';
 import { useScrollVisibility } from './hooks/useScrollVisibility';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useTopics } from './hooks/useTopics';
+
+// Code splitting: Lazy load heavy components
+const PredictionDetail = lazy(() => import('./components/PredictionDetail').then(m => ({ default: m.PredictionDetail })));
+const AddQuestionModal = lazy(() => import('./components/AddQuestionModal').then(m => ({ default: m.AddQuestionModal })));
+const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
 
 export default function App() {
   const [selectedPrediction, setSelectedPrediction] = useState<Prediction | null>(null);
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [activeTab, setActiveTab] = useState<'feed' | 'profile'>('feed');
-  const [selectedCategory, setSelectedCategory] = useState('political');
+  const [selectedTopicId, setSelectedTopicId] = useState<number | undefined>(undefined);
   const isNavVisible = useScrollVisibility();
+  const { topics, loading: topicsLoading } = useTopics();
 
-  // Handle swipe to change category
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'k',
+      ctrl: true,
+      handler: () => {
+        // Open search (triggered via Header search button)
+        const searchButton = document.querySelector('[aria-label="جستجو"]') as HTMLElement;
+        searchButton?.click();
+      },
+      description: 'جستجو',
+    },
+    {
+      key: 'n',
+      ctrl: true,
+      handler: () => setShowAddQuestion(true),
+      description: 'سوال جدید',
+    },
+    {
+      key: 'Escape',
+      handler: () => {
+        if (selectedPrediction) setSelectedPrediction(null);
+        if (showAddQuestion) setShowAddQuestion(false);
+      },
+      description: 'بستن',
+    },
+  ]);
+
+  // Set initial topic when topics are loaded
+  useEffect(() => {
+    if (topics.length > 0 && selectedTopicId === undefined) {
+      setSelectedTopicId(topics[0].id);
+    }
+  }, [topics, selectedTopicId]);
+
+  // Handle swipe to change topic
   const handleSwipeLeft = () => {
-    const currentIndex = categories.findIndex(cat => cat.id === selectedCategory);
-    const nextIndex = (currentIndex + 1) % categories.length;
-    setSelectedCategory(categories[nextIndex].id);
+    if (topics.length === 0) return;
+    const currentIndex = topics.findIndex(topic => topic.id === selectedTopicId);
+    const nextIndex = (currentIndex + 1) % topics.length;
+    setSelectedTopicId(topics[nextIndex].id);
   };
 
   const handleSwipeRight = () => {
-    const currentIndex = categories.findIndex(cat => cat.id === selectedCategory);
-    const prevIndex = currentIndex === 0 ? categories.length - 1 : currentIndex - 1;
-    setSelectedCategory(categories[prevIndex].id);
+    if (topics.length === 0) return;
+    const currentIndex = topics.findIndex(topic => topic.id === selectedTopicId);
+    const prevIndex = currentIndex === 0 ? topics.length - 1 : currentIndex - 1;
+    setSelectedTopicId(topics[prevIndex].id);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
+    <div className="min-h-screen bg-gray-50 mx-auto" dir="rtl" style={{ maxWidth: '428px', width: '100%' }}>
       <Header 
         isVisible={isNavVisible}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
+        selectedTopicId={selectedTopicId}
+        topics={topics}
+        onTopicChange={setSelectedTopicId}
+        onPredictionClick={setSelectedPrediction}
+        onSwipeLeft={handleSwipeLeft}
+        onSwipeRight={handleSwipeRight}
       />
       
       {/* Top spacing for fixed header */}
       <div className="h-[57px]"></div>
       
-      <main className="max-w-2xl mx-auto pb-24">
+      <main className="w-full pb-24">
         {activeTab === 'feed' ? (
           <FeedView
             onPredictionClick={setSelectedPrediction}
             onSwipeLeft={handleSwipeLeft}
             onSwipeRight={handleSwipeRight}
+            topicId={selectedTopicId}
           />
         ) : (
-          <ProfileView />
+          <Suspense fallback={
+            <div className="space-y-0">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <PredictionCardSkeleton key={`profile-skeleton-${i}`} />
+              ))}
+            </div>
+          }>
+            <ProfileView />
+          </Suspense>
         )}
       </main>
 
@@ -60,16 +115,20 @@ export default function App() {
       />
 
       {selectedPrediction && (
-        <PredictionDetail
-          prediction={selectedPrediction}
-          onClose={() => setSelectedPrediction(null)}
-        />
+        <Suspense fallback={null}>
+          <PredictionDetail
+            prediction={selectedPrediction}
+            onClose={() => setSelectedPrediction(null)}
+          />
+        </Suspense>
       )}
 
-      <AddQuestionModal
-        isOpen={showAddQuestion}
-        onClose={() => setShowAddQuestion(false)}
-      />
+      <Suspense fallback={null}>
+        <AddQuestionModal
+          isOpen={showAddQuestion}
+          onClose={() => setShowAddQuestion(false)}
+        />
+      </Suspense>
     </div>
   );
 }

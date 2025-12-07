@@ -112,17 +112,25 @@ export interface UpdateUserData {
 }
 
 export interface Prediction {
-  id: string;
-  author: string;
-  timestamp: string;
-  question: string;
-  description?: string;
-  detailedDescription?: string;
-  category: string;
-  tags: Tag[];
-  options: PredictionOption[];
+  id: number;
+  title: string;
+  text: string;
+  category_id: number;
+  topic_id: number;
+  user_id: number | null;
+  closes_at: string;
+  starts_at: string;
+  resolve_at: string | null;
+  time_past: string;
+  userPredictionsCount: number;
   commentsCount: number;
-  sharesCount: number;
+  questionForwardCount: number;
+  user: {
+    username: string;
+    mobile: string;
+  } | null;
+  tags: Tag[];
+  questionOptions: PredictionOption[];
   comments?: Comment[];
 }
 
@@ -131,6 +139,7 @@ export interface PredictionListParams {
     paginate?: number;
     search?: string;
     sort?: string;
+    topic_id?: number;
 }
 
 export interface CreatePredictionData {
@@ -146,23 +155,37 @@ export interface UpdatePredictionData {
 }
 
 export interface PredictionOption {
-    id: string;
-    text: string;
-    percentage: number;
-    voters: number;
+    id: number;
+    title: string;
+    question_id: number;
+    is_true: number;
+    userPredictionsCount: number;
 }
 
 export interface Tag {
-    id: string;
-    label: string;
+    id: number;
+    title: string;
+    color: string;
 }
 
 export interface Comment {
-    id: string;
-    author: string;
-    content: string;
-    likes: number;
-    replies: number;
-    timestamp: string;
-    avatar?: string;
+    user_id: number;
+    parent_id: number | null;
+    question_id: number;
+    text: string;
+    file: string | null;
+    time_past: string;
+    user: {
+        username: string;
+        mobile: string;
+    } | null;
+    childrenCount: number;
+    likesCount: number;
+    children?: Comment[];
+}
+
+export interface Topic {
+    id: number;
+    title: string;
+    category_id?: number;
 }

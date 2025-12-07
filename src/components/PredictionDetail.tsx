@@ -1,49 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { TrendingUp, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {Prediction} from "../models/Prediction.ts";
 import { CommentSection } from './CommentSection';
+import { toast } from 'sonner';
+import { predictionService } from '../services/predictionService.service';
+import { useBottomSheet } from '../hooks/useBottomSheet';
 
 interface PredictionDetailProps {
     prediction: Prediction;
     onClose: () => void;
 }
 
+const TRANSITION_MS = 300;
+
 export function PredictionDetail({ prediction, onClose }: PredictionDetailProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
-    const [opinion] = useState('');
     const [isVisible, setIsVisible] = useState(false);
-    const [height, setHeight] = useState<number>(70);
-
-    const heightRef = useRef<number>(70);
-    const startY = useRef<number | null>(null);
-    const startHeight = useRef<number>(70);
-    const dragging = useRef(false);
-
-    const velocityRef = useRef(0);
-    const lastYRef = useRef<number | null>(null);
-    const lastTimeRef = useRef<number | null>(null);
-
-    const SNAP_POINTS = [95, 75, 50];
-    const MIN_HEIGHT = 35;
-    const MAX_HEIGHT = 100;
-    const CLOSE_HEIGHT_THRESHOLD = 45;
-    const VELOCITY_CLOSE_THRESHOLD = 0.5;
-    const TRANSITION_MS = 300;
-
-    useEffect(() => {
-        setIsVisible(true);
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, []);
-
-    const setHeightSync = (h: number) => {
-        heightRef.current = h;
-        setHeight(h);
-    };
 
     const handleClose = () => {
         setIsVisible(false);
@@ -52,138 +26,152 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
         }, TRANSITION_MS);
     };
 
-    const handleSubmit = () => {
-        if (selectedOption && opinion.trim()) {
-            console.log('Submitted:', { option: selectedOption, opinion });
-        }
-    };
+    const {
+        state,
+        height,
+        isDragging,
+        canScroll,
+        containerRef,
+        contentRef,
+        onMouseDown,
+        onTouchStart,
+    } = useBottomSheet({
+        onClose: handleClose,
+        collapsedHeight: 50,
+        halfExpandedHeight: 75,
+        fullyExpandedHeight: 95,
+        closeThreshold: 30,
+        velocityThreshold: 0.5,
+    });
 
-    const addListeners = () => {
-        document.addEventListener('mousemove', handleDragMove as any);
-        document.addEventListener('mouseup', handleDragEnd as any);
-        document.addEventListener('touchmove', handleDragMove as any, { passive: false } as any);
-        document.addEventListener('touchend', handleDragEnd as any);
-    };
+    useEffect(() => {
+        setIsVisible(true);
+        // Focus management: focus the sheet content when it opens
+        setTimeout(() => {
+            containerRef.current?.focus();
+        }, 100);
+    }, [containerRef]);
 
-    const removeListeners = () => {
-        document.removeEventListener('mousemove', handleDragMove as any);
-        document.removeEventListener('mouseup', handleDragEnd as any);
-        document.removeEventListener('touchmove', handleDragMove as any);
-        document.removeEventListener('touchend', handleDragEnd as any);
-    };
-
-    const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-        dragging.current = true;
-        const y = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
-        startY.current = y;
-        startHeight.current = heightRef.current;
-
-        lastYRef.current = y;
-        lastTimeRef.current = performance.now();
-        velocityRef.current = 0;
-
-        addListeners();
-    };
-
-    const handleDragMove = (e: MouseEvent | TouchEvent) => {
-        if (startY.current === null || !dragging.current) return;
-
-        if ('touches' in e) {
-            e.preventDefault();
-        }
-
-        const currentY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
-        const deltaY = startY.current - currentY;
-        let newHeight = startHeight.current + (deltaY / window.innerHeight) * 100;
-
-        if (newHeight > SNAP_POINTS[0]) {
-            const overshoot = newHeight - SNAP_POINTS[0];
-            newHeight = SNAP_POINTS[0] + overshoot * 0.35;
-        } else if (newHeight < MIN_HEIGHT) {
-            const undershoot = MIN_HEIGHT - newHeight;
-            newHeight = MIN_HEIGHT - undershoot * 0.35;
-        }
-
-        newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, newHeight));
-        setHeightSync(Number(newHeight.toFixed(2)));
-
-        const now = performance.now();
-        const lastY = lastYRef.current!;
-        const lastTime = lastTimeRef.current!;
-        const dy = (lastY - currentY);
-        const dt = Math.max(1, now - lastTime);
-        velocityRef.current = (currentY - lastY) / dt;
-
-        lastYRef.current = currentY;
-        lastTimeRef.current = now;
-    };
-
-    const findClosestSnap = (value: number) => {
-        return SNAP_POINTS.reduce((a, b) => (Math.abs(b - value) < Math.abs(a - value) ? b : a), SNAP_POINTS[0]);
-    };
-
-    const handleDragEnd = () => {
-        removeListeners();
-
-        if (!dragging.current) {
-            startY.current = null;
-            return;
-        }
-        dragging.current = false;
-
-        const currentHeight = heightRef.current;
-        const velocity = velocityRef.current;
-
-        lastYRef.current = null;
-        lastTimeRef.current = null;
-        velocityRef.current = 0;
-
-        if (velocity > VELOCITY_CLOSE_THRESHOLD) {
-            handleClose();
+    const handleSubmit = async () => {
+        if (!selectedOption) {
+            toast.error('لطفاً یک گزینه انتخاب کنید');
             return;
         }
 
-        if (currentHeight < CLOSE_HEIGHT_THRESHOLD) {
-            handleClose();
-            return;
+        try {
+            // Optimistic update - show loading
+            const loadingToast = toast.loading('در حال ثبت پیش‌بینی...');
+            
+            // TODO: Implement actual API call
+            // await predictionService.submitPrediction(prediction.id, selectedOption);
+            
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            toast.dismiss(loadingToast);
+            toast.success('پیش‌بینی با موفقیت ثبت شد');
+            
+            // Close modal after success
+            setTimeout(() => {
+                handleClose();
+            }, 500);
+        } catch (error) {
+            toast.error('خطا در ثبت پیش‌بینی', {
+                description: error instanceof Error ? error.message : 'لطفاً دوباره تلاش کنید',
+            });
         }
-
-        const snap = findClosestSnap(currentHeight);
-        setHeightSync(snap);
     };
 
     return (
         <div
             className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
             onClick={handleClose}
+            style={{
+                opacity: isVisible ? 1 : 0,
+                transition: `opacity ${TRANSITION_MS}ms ease-out`,
+            }}
         >
             <div
+                ref={containerRef}
                 className="bg-background w-full max-w-2xl rounded-t-3xl overflow-hidden"
-                onMouseDown={handleDragStart}
-                onTouchStart={handleDragStart}
                 onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => {
+                    // Only handle drag if not clicking on content area when scrollable
+                    if (canScroll && contentRef.current) {
+                        const isOnContent = contentRef.current.contains(e.target as HTMLElement);
+                        const atTop = contentRef.current.scrollTop <= 5;
+                        if (isOnContent && !atTop) {
+                            return; // Allow normal interaction with content
+                        }
+                    }
+                    onMouseDown(e);
+                }}
+                onTouchStart={(e) => {
+                    // Only handle drag if not touching content area when scrollable
+                    if (canScroll && contentRef.current) {
+                        const isOnContent = contentRef.current.contains(e.target as HTMLElement);
+                        const atTop = contentRef.current.scrollTop <= 5;
+                        if (isOnContent && !atTop) {
+                            return; // Allow normal scrolling
+                        }
+                    }
+                    onTouchStart(e);
+                }}
                 dir="rtl"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="prediction-detail-title"
+                tabIndex={-1}
                 style={{
                     transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
-                    transition: `transform ${TRANSITION_MS}ms cubic-bezier(0.22, 0.98, 0.38, 0.99), height ${TRANSITION_MS}ms cubic-bezier(0.22, 0.98, 0.38, 0.99)`,
+                    transition: isDragging ? 'none' : `transform ${TRANSITION_MS}ms cubic-bezier(0.32, 0.72, 0, 1), height ${TRANSITION_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
                     height: `${height}vh`,
+                    maxHeight: '95vh',
+                    cursor: isDragging ? 'grabbing' : 'default',
+                    userSelect: isDragging ? 'none' : 'auto',
+                    touchAction: 'none', // Prevent default touch behavior on container, content handles its own
                 }}
             >
-                <div
+                {/* Drag handle indicator - also draggable */}
+                <div 
                     className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing"
+                    onMouseDown={onMouseDown}
+                    onTouchStart={onTouchStart}
                 >
                     <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
                 </div>
 
-                <div className="h-full overflow-y-auto pb-6">
-                    <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 flex items-center justify-between z-10">
+                <div 
+                    ref={contentRef}
+                    className="h-full pb-24"
+                    style={{
+                        overflowY: canScroll ? 'auto' : 'hidden',
+                        overscrollBehavior: 'contain',
+                        WebkitOverflowScrolling: 'touch',
+                        touchAction: canScroll ? 'pan-y' : 'none',
+                        pointerEvents: 'auto', // Ensure content is interactive
+                        position: 'relative',
+                        height: '100%',
+                    }}
+                    onTouchStart={(e) => {
+                        // Stop propagation to prevent container from handling this touch
+                        // Only if we're on content and not at top
+                        if (canScroll && contentRef.current) {
+                            const atTop = contentRef.current.scrollTop <= 5;
+                            if (!atTop) {
+                                e.stopPropagation(); // Prevent container drag handlers
+                            }
+                        }
+                    }}
+                >
+                    <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 pb-2 flex items-center justify-between z-10">
                         <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
                             <ChevronDown className="w-5 h-5" />
                         </Button>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">{prediction.timePast}</span>
-                            <span className="text-sm text-muted-foreground">•</span>
-                            <span className="text-sm">{prediction.user?.name}</span>
+                            <span className="text-xs text-muted-foreground">{prediction.timePast}</span>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className="text-sm">{prediction.user?.username || 'ناشناس'}</span>
                             <div className="w-6 h-6 rounded-full bg-[#FF6B35] flex items-center justify-center">
                                 <TrendingUp className="w-3 h-3 text-white" />
                             </div>
@@ -192,9 +180,9 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
 
                     <div className="px-4 py-6 space-y-6">
                         <div>
-                            <p className="text-sm font-semibold leading-relaxed mb-2">{prediction.title}</p>
+                            <p id="prediction-detail-title" className="text-sm font-semibold leading-relaxed mb-2">{prediction.title}</p>
 
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1.5">
                                 {prediction.tags.map((tag) => (
                                     <Badge
                                         key={tag.id}
@@ -209,33 +197,31 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
 
                             <div className="space-y-3 mt-4">
                                 <div className="grid grid-cols-3 gap-2">
-                                    {prediction.options.map((option) => (
-                                        <button
-                                            key={option.id}
-                                            onClick={() => setSelectedOption(option.id)}
-                                            className={`p-3 transition-all rounded-none ${
-                                                selectedOption === option.id ? 'border-[#FF6B35] bg-orange-50' : 'border-gray-200 bg-blue-50'
-                                            }`}
-                                        >
-                                            {prediction.userPredictionsCount > 0 ? (
+                                    {prediction.options.map((option) => {
+                                        const percentage = prediction.getOptionPercentage(option.id);
+                                        return (
+                                            <button
+                                                key={option.id}
+                                                onClick={() => setSelectedOption(String(option.id))}
+                                                className={`bg-blue-50 rounded-lg h-20 p-3 flex flex-col items-center justify-center gap-2 transition-all ${
+                                                    selectedOption === String(option.id) 
+                                                        ? 'ring-2 ring-[#FF6B35] bg-orange-50' 
+                                                        : 'hover:bg-blue-100'
+                                                }`}
+                                            >
+                                                {prediction.userPredictionsCount > 0 && (
+                                                    <div className="flex items-center gap-1 text-sm text-blue-600">
+                                                        <TrendingUp className="w-3 h-3" />
+                                                        <span>{percentage}%</span>
+                                                    </div>
+                                                )}
 
-                                                <div className="flex items-center justify-center gap-1 text-sm text-blue-600">
-                                                    <TrendingUp className="w-3 h-3" />
-                                                    <span>
-                                                        {Math.round((option.questionForwardCount / prediction.userPredictionsCount) * 100)}%
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-1 text-sm text-blue-600">
-
-                                                </div>
-                                            )}
-
-                                            <span className="text-xs text-gray-600">
-                                                {option.title}
-                                            </span>
-                                        </button>
-                                    ))}
+                                                <span className="text-xs text-gray-600 text-center">
+                                                    {option.title}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -249,39 +235,41 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
                             )}
 
                             {prediction.userPredictionsCount > 0 && (
-
                                 <div className="space-y-3">
                                     <h4 className="text-sm text-center">پیش‌بینی کاربران</h4>
                                     <div className="space-y-2">
-                                        {prediction.options.map((option, index) => (
-                                            <div key={option.id} className="space-y-1">
-                                                <div className="flex items-center justify-between text-xs">
-                                                <span className="text-gray-600">
-                                                  {index + 1}. {option.userPredictionsCount}
-                                                </span>
-                                                    <span className="text-[#FF6B35]">نسبت {option.percentage}%</span>
+                                        {prediction.options.map((option, index) => {
+                                            const percentage = prediction.getOptionPercentage(option.id);
+                                            return (
+                                                <div key={option.id} className="space-y-1">
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="text-gray-600">
+                                                            {index + 1}. {option.title} ({option.userPredictionsCount} رای)
+                                                        </span>
+                                                        <span className="text-[#FF6B35]">{percentage}%</span>
+                                                    </div>
+                                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-[#FF6B35] transition-all" style={{ width: `${percentage}%` }} />
+                                                    </div>
                                                 </div>
-                                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-[#FF6B35] transition-all" style={{ width: `${option.percentage}%` }} />
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
                         </div>
-                        {prediction.commentsCount > 0 && (
+                        {prediction.commentsCount > 0 && prediction.comments && prediction.comments.length > 0 && (
                             <CommentSection comments={prediction.comments} />
                         )}
 
                     </div>
                 </div>
 
-                <div className="sticky bottom-0 bg-background w-full">
+                <div className="absolute bottom-0 left-0 right-0 bg-background border-t border-border w-full px-4 py-3 shadow-lg">
                     <Button
                         onClick={handleSubmit}
                         disabled={!selectedOption}
-                        className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white rounded-none font-bold text-md w-full py-6 font-yekanBakh"
+                        className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white rounded-lg font-bold text-md w-full py-6"
                     >
                         ثبت پیش‌بینی
                     </Button>

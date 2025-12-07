@@ -10,11 +10,18 @@ interface BottomNavProps {
 export function BottomNav({ isVisible, activeTab, onTabChange, onAddQuestion }: BottomNavProps) {
   return (
     <nav
-      className={`fixed bottom-0 left-0 h-12 right-0 z-50 bg-background border-t border-border transition-all duration-300 ease-in-out ${
+      className={`fixed bottom-0 z-50 bg-background border-t border-border transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
+      style={{
+        left: '50%',
+        transform: isVisible ? 'translateX(-50%)' : 'translateX(-50%) translateY(100%)',
+        width: '100%',
+        maxWidth: '428px',
+        height: '48px',
+      }}
     >
-      <div className="flex items-center justify-around px-4 py-1 max-w-2xl mx-auto">
+      <div className="flex items-center justify-around px-4 py-1">
         {/* Profile Tab */}
         <button
           onClick={() => onTabChange('profile')}

@@ -6,6 +6,7 @@ import axios, {
     AxiosError,
 } from 'axios';
 import { ApiResponse, ApiError } from '../types/api';
+import { toast } from 'sonner';
 
 class ApiClient {
     private client: AxiosInstance;
@@ -49,24 +50,11 @@ class ApiClient {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
 
-        if (import.meta.env.DEV) {
-            console.log('📤 API Request:', {
-                method: config.method?.toUpperCase(),
-                url: config.url,
-                data: config.data,
-                params: config.params,
-            });
-        }
+    
     }
 
     private handleResponse(response: AxiosResponse): void {
-        if (import.meta.env.DEV) {
-            console.log('📥 API Response:', {
-                status: response.status,
-                data: response.data,
-                url: response.config.url,
-            });
-        }
+      
     }
 
     private handleError(error: AxiosError | any): ApiError {
@@ -89,19 +77,32 @@ class ApiClient {
         switch (error.status) {
             case 401:
                 this.handleUnauthorized();
+                toast.error('احراز هویت نامعتبر', {
+                    description: 'لطفاً دوباره وارد شوید',
+                });
                 break;
             case 403:
-                console.error('دسترسی غیرمجاز');
+                toast.error('دسترسی غیرمجاز', {
+                    description: 'شما مجاز به انجام این عملیات نیستید',
+                });
                 break;
             case 404:
-                console.error('منبع مورد نظر یافت نشد');
+                toast.error('منبع مورد نظر یافت نشد');
                 break;
             case 500:
-                console.error('خطای سرور داخلی');
+                toast.error('خطای سرور', {
+                    description: 'لطفاً بعداً تلاش کنید',
+                });
                 break;
             default:
-                if (error.message?.toLowerCase().includes('network')) {
-                    console.error('خطای شبکه - اتصال اینترنت را بررسی کنید');
+                if (error.message?.toLowerCase().includes('network') || error.status === 0) {
+                    toast.error('خطای اتصال', {
+                        description: 'اتصال اینترنت را بررسی کنید',
+                    });
+                } else if (error.status >= 400) {
+                    toast.error('خطا در درخواست', {
+                        description: error.message || 'لطفاً دوباره تلاش کنید',
+                    });
                 }
         }
     }

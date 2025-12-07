@@ -1,8 +1,57 @@
 import { TrendingUp, Calendar, Award } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { useProfile } from '../hooks/useProfile';
+import { Skeleton } from './ui/skeleton';
+import { toast } from 'sonner';
 
 export function ProfileView() {
+  const { profile, stats, loading } = useProfile();
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `پروفایل ${profile?.name || 'کاربر'}`,
+        text: `پروفایل ${profile?.name || 'کاربر'} در Forecasters`,
+        url: window.location.href,
+      }).catch(() => {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        toast.success('لینک کپی شد');
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('لینک کپی شد');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6 pb-24" dir="rtl">
+        <div className="bg-white border-b border-border p-6">
+          <div className="flex items-start gap-4">
+            <Skeleton className="w-20 h-20 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-48" />
+              <div className="flex gap-2 mt-3">
+                <Skeleton className="h-8 w-24 rounded-full" />
+                <Skeleton className="h-8 w-24 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border-b border-border p-6">
+          <div className="grid grid-cols-3 gap-4">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-24" dir="rtl">
       {/* Profile Header */}
@@ -12,7 +61,7 @@ export function ProfileView() {
             <TrendingUp className="w-10 h-10 text-white" />
           </div>
           <div className="flex-1">
-            <h2 className="mb-1">forecasters</h2>
+            <h2 className="mb-1">{profile?.name || 'کاربر'}</h2>
             <p className="text-sm text-muted-foreground mb-3">
               کاربر فعال در پیش‌بینی‌های سیاسی و اقتصادی
             </p>
@@ -20,7 +69,12 @@ export function ProfileView() {
               <Button variant="outline" size="sm" className="rounded-full">
                 ویرایش پروفایل
               </Button>
-              <Button variant="outline" size="sm" className="rounded-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="rounded-full"
+                onClick={handleShare}
+              >
                 اشتراک‌گذاری
               </Button>
             </div>
@@ -32,15 +86,17 @@ export function ProfileView() {
       <div className="bg-white border-b border-border p-6">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-2xl text-[#FF6B35] mb-1">156</div>
+            <div className="text-2xl text-[#FF6B35] mb-1">{stats.predictionsCount}</div>
             <div className="text-xs text-muted-foreground">پیش‌بینی</div>
           </div>
           <div>
-            <div className="text-2xl text-[#FF6B35] mb-1">87%</div>
+            <div className="text-2xl text-[#FF6B35] mb-1">{stats.accuracy}%</div>
             <div className="text-xs text-muted-foreground">دقت</div>
           </div>
           <div>
-            <div className="text-2xl text-[#FF6B35] mb-1">1.2K</div>
+            <div className="text-2xl text-[#FF6B35] mb-1">
+              {stats.score >= 1000 ? `${(stats.score / 1000).toFixed(1)}K` : stats.score}
+            </div>
             <div className="text-xs text-muted-foreground">امتیاز</div>
           </div>
         </div>

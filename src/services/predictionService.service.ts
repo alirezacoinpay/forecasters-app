@@ -10,18 +10,20 @@ import {
 
 export const predictionService = {
     // Get predictions list with pagination
-    async getPredictionFeed(params?: PredictionListParams): Promise<PaginatedResponse<Prediction>> {
-        const response = await apiClient.get<PaginatedResponse<Prediction>>(
+    async getPredictionFeed(params?: PredictionListParams): Promise<ApiResponse<Prediction[]>> {
+        const response = await apiClient.get<ApiResponse<Prediction[]>>(
             '/question-feed',
             { params }
         );
-        return response.data;
+    
+        
+        return response;
     },
 
     // Get prediction by ID
-    async getPredictionById(id: string): Promise<Prediction> {
-        const response = await apiClient.get<{ data: Prediction }>(`/questions/${id}`);
-        return response.data.data;
+    async getPredictionById(id: number | string): Promise<Prediction> {
+        const response = await apiClient.get<ApiResponse<Prediction>>(`/questions/${id}`);
+        return response.data;
     },
 
     // Create prediction

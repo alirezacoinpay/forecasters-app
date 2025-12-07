@@ -57,8 +57,7 @@
       outDir: 'build',
     },
     server: {
-      host: true,
-      port: 3000,
-      open: true,
-    },
+      host: "0.0.0.0",
+      port: 5173,   // or any port you prefer
+    }
   });

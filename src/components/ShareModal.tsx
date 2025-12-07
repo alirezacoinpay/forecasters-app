@@ -15,8 +15,6 @@ export function ShareModal({ isOpen, onClose, predictionId }: ShareModalProps) {
 
   const handleSend = () => {
     if (phoneNumber.trim()) {
-      // Handle sending to phone number
-      console.log('Sending to:', phoneNumber);
       alert(`ارسال به شماره: ${phoneNumber}`);
       setPhoneNumber('');
       onClose();
