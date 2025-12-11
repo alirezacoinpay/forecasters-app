@@ -142,10 +142,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
       // Add to local state
       if (replyingTo) {
         // If replying, we'd need to update the parent comment's children
-        // For now, just refresh
-        if (onCommentAdded) {
-          onCommentAdded();
-        }
+        // For now, just refresh (callback will be called below)
       } else {
         // Add as new root comment - convert API Comment to model Comment
         const modelComment = new Comment(newComment as any);
@@ -158,7 +155,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
       setReplyingTo(null);
       setReplyingToCommentId(null);
 
-      // Refresh if callback provided
+      // Refresh if callback provided (called once for both replies and root comments)
       if (onCommentAdded) {
         onCommentAdded();
       }
