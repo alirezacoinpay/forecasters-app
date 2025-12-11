@@ -6,18 +6,21 @@ import {Prediction} from "../models/Prediction.ts";
 import { CommentSection } from './CommentSection';
 import { toast } from 'sonner';
 import { predictionService } from '../services/predictionService.service';
+import { activityService } from '../services/activityService.service';
 import { useBottomSheet } from '../hooks/useBottomSheet';
 
 interface PredictionDetailProps {
     prediction: Prediction;
     onClose: () => void;
+    onRefresh?: () => void;
 }
 
 const TRANSITION_MS = 300;
 
-export function PredictionDetail({ prediction, onClose }: PredictionDetailProps) {
+export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionDetailProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isVisible, setIsVisible] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleClose = () => {
         setIsVisible(false);
@@ -54,31 +57,49 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
 
     const handleSubmit = async () => {
         if (!selectedOption) {
-            toast.error('لطفاً یک گزینه انتخاب کنید');
+            toast.error('لطفاً یک گزینه انتخاب کنید', {
+                duration: 3000,
+            });
             return;
         }
 
+        setIsSubmitting(true);
+        const loadingToast = toast.loading('در حال ثبت پیش‌بینی...');
+
         try {
-            // Optimistic update - show loading
-            const loadingToast = toast.loading('در حال ثبت پیش‌بینی...');
-            
-            // TODO: Implement actual API call
-            // await predictionService.submitPrediction(prediction.id, selectedOption);
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
+            await predictionService.submitPrediction({
+                question_option_id: Number(selectedOption),
+            });
+
+            // Log activity
+            await activityService.logActivity('prediction_submit', {
+                question_id: prediction.id,
+                question_option_id: Number(selectedOption),
+            });
+
             toast.dismiss(loadingToast);
-            toast.success('پیش‌بینی با موفقیت ثبت شد');
-            
+            toast.success('پیش‌بینی با موفقیت ثبت شد', {
+                duration: 2000,
+            });
+
+            // Refresh feed if callback provided
+            if (onRefresh) {
+                onRefresh();
+            }
+
             // Close modal after success
             setTimeout(() => {
                 handleClose();
-            }, 500);
-        } catch (error) {
+            }, 300);
+        } catch (error: any) {
+            toast.dismiss(loadingToast);
+            const errorMessage = error?.data?.message || error?.message || 'لطفاً دوباره تلاش کنید';
             toast.error('خطا در ثبت پیش‌بینی', {
-                description: error instanceof Error ? error.message : 'لطفاً دوباره تلاش کنید',
+                description: errorMessage,
+                duration: 3000,
             });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -259,7 +280,16 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
                             )}
                         </div>
                         {prediction.commentsCount > 0 && prediction.comments && prediction.comments.length > 0 && (
-                            <CommentSection comments={prediction.comments} />
+                            <CommentSection 
+                                comments={prediction.comments} 
+                                questionId={prediction.id}
+                                onCommentAdded={() => {
+                                    // Refresh prediction data if needed
+                                    if (onRefresh) {
+                                        onRefresh();
+                                    }
+                                }}
+                            />
                         )}
 
                     </div>
@@ -268,10 +298,10 @@ export function PredictionDetail({ prediction, onClose }: PredictionDetailProps)
                 <div className="absolute bottom-0 left-0 right-0 bg-background border-t border-border w-full px-4 py-3 shadow-lg">
                     <Button
                         onClick={handleSubmit}
-                        disabled={!selectedOption}
+                        disabled={!selectedOption || isSubmitting}
                         className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white rounded-lg font-bold text-md w-full py-6"
                     >
-                        ثبت پیش‌بینی
+                        {isSubmitting ? 'در حال ثبت...' : 'ثبت پیش‌بینی'}
                     </Button>
                 </div>
             </div>

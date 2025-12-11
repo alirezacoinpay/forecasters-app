@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/questions/FeedView.tsx';
@@ -10,16 +10,33 @@ import { useTopics } from './hooks/useTopics';
 
 // Code splitting: Lazy load heavy components
 const PredictionDetail = lazy(() => import('./components/PredictionDetail').then(m => ({ default: m.PredictionDetail })));
-const AddQuestionModal = lazy(() => import('./components/AddQuestionModal').then(m => ({ default: m.AddQuestionModal })));
+const CreatePredictionPage = lazy(() => import('./components/CreatePredictionPage').then(m => ({ default: m.CreatePredictionPage })));
+const SearchPage = lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
 const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
 
 export default function App() {
   const [selectedPrediction, setSelectedPrediction] = useState<Prediction | null>(null);
   const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [showSearchPage, setShowSearchPage] = useState(false);
+  const [searchPageTag, setSearchPageTag] = useState<{ id: number; title: string; color: string } | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<'feed' | 'profile'>('feed');
   const [selectedTopicId, setSelectedTopicId] = useState<number | undefined>(undefined);
-  const isNavVisible = useScrollVisibility();
+  const [headerVisibleFromSwipe, setHeaderVisibleFromSwipe] = useState(false);
+  const isNavVisibleFromScroll = useScrollVisibility();
+  const prevScrollVisibleRef = useRef(isNavVisibleFromScroll);
   const { topics, loading: topicsLoading } = useTopics();
+  
+  // Reset swipe-triggered visibility only when scrolling down (not just when hidden)
+  useEffect(() => {
+    // Only reset if scroll visibility changed from true to false (scrolling down)
+    if (prevScrollVisibleRef.current && !isNavVisibleFromScroll && headerVisibleFromSwipe) {
+      setHeaderVisibleFromSwipe(false);
+    }
+    prevScrollVisibleRef.current = isNavVisibleFromScroll;
+  }, [isNavVisibleFromScroll, headerVisibleFromSwipe]);
+  
+  // Combine scroll visibility with swipe-triggered visibility
+  const isNavVisible = isNavVisibleFromScroll || headerVisibleFromSwipe;
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -56,12 +73,14 @@ export default function App() {
     }
   }, [topics, selectedTopicId]);
 
-  // Handle swipe to change topic
+  // Handle swipe to change topic and show header
   const handleSwipeLeft = () => {
     if (topics.length === 0) return;
     const currentIndex = topics.findIndex(topic => topic.id === selectedTopicId);
     const nextIndex = (currentIndex + 1) % topics.length;
     setSelectedTopicId(topics[nextIndex].id);
+    // Show header smoothly when swiping (stays visible until scroll hides it)
+    setHeaderVisibleFromSwipe(true);
   };
 
   const handleSwipeRight = () => {
@@ -69,10 +88,50 @@ export default function App() {
     const currentIndex = topics.findIndex(topic => topic.id === selectedTopicId);
     const prevIndex = currentIndex === 0 ? topics.length - 1 : currentIndex - 1;
     setSelectedTopicId(topics[prevIndex].id);
+    // Show header smoothly when swiping (stays visible until scroll hides it)
+    setHeaderVisibleFromSwipe(true);
   };
 
+  // Show create prediction page if showAddQuestion is true
+  if (showAddQuestion) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-muted-foreground">در حال بارگذاری...</div>
+        </div>
+      }>
+        <CreatePredictionPage
+          onClose={() => setShowAddQuestion(false)}
+          selectedTopicId={selectedTopicId}
+          topics={topics}
+          onTopicChange={setSelectedTopicId}
+        />
+      </Suspense>
+    );
+  }
+
+  // Show search page if showSearchPage is true
+  if (showSearchPage) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      }>
+        <SearchPage
+          onClose={() => {
+            setShowSearchPage(false);
+            setSearchPageTag(undefined);
+          }}
+          onPredictionClick={setSelectedPrediction}
+          selectedTag={searchPageTag}
+        />
+      </Suspense>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 mx-auto" dir="rtl" style={{ maxWidth: '428px', width: '100%' }}>
+    <div className="min-h-screen bg-gray-50 mx-auto" dir="rtl" style={{ maxWidth: '428px', width: '100%', overflowX: 'hidden' }}>
       <Header 
         isVisible={isNavVisible}
         selectedTopicId={selectedTopicId}
@@ -81,6 +140,7 @@ export default function App() {
         onPredictionClick={setSelectedPrediction}
         onSwipeLeft={handleSwipeLeft}
         onSwipeRight={handleSwipeRight}
+        onSearchClick={() => setShowSearchPage(true)}
       />
       
       {/* Top spacing for fixed header */}
@@ -93,6 +153,10 @@ export default function App() {
             onSwipeLeft={handleSwipeLeft}
             onSwipeRight={handleSwipeRight}
             topicId={selectedTopicId}
+            onTagClick={(tag) => {
+              setSearchPageTag(tag);
+              setShowSearchPage(true);
+            }}
           />
         ) : (
           <Suspense fallback={
@@ -119,16 +183,14 @@ export default function App() {
           <PredictionDetail
             prediction={selectedPrediction}
             onClose={() => setSelectedPrediction(null)}
+            onRefresh={() => {
+              // Trigger feed refresh by updating key or calling refresh
+              // This will be handled by FeedView's refresh mechanism
+              window.dispatchEvent(new Event('refresh-feed'));
+            }}
           />
         </Suspense>
       )}
-
-      <Suspense fallback={null}>
-        <AddQuestionModal
-          isOpen={showAddQuestion}
-          onClose={() => setShowAddQuestion(false)}
-        />
-      </Suspense>
     </div>
   );
 }

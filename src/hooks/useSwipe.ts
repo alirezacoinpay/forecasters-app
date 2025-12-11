@@ -1,4 +1,4 @@
-import { useState, useRef, TouchEvent } from 'react';
+import { useState, useRef, useEffect, TouchEvent } from 'react';
 
 interface SwipeInput {
   onSwipeLeft?: () => void;
@@ -8,7 +8,6 @@ interface SwipeInput {
 
 interface SwipeOutput {
   onTouchStart: (e: TouchEvent) => void;
-  onTouchMove: (e: TouchEvent) => void;
   onTouchEnd: () => void;
   // State values (not for spreading on DOM)
   isSwiping: boolean;
@@ -20,7 +19,6 @@ interface SwipeOutput {
 export function getSwipeEventHandlers(swipeOutput: SwipeOutput) {
   return {
     onTouchStart: swipeOutput.onTouchStart,
-    onTouchMove: swipeOutput.onTouchMove,
     onTouchEnd: swipeOutput.onTouchEnd,
   };
 }
@@ -32,57 +30,87 @@ export function useSwipe(input: SwipeInput): SwipeOutput {
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLElement | null>(null);
+  const touchStartRef = useRef<number | null>(null);
+  const touchEndRef = useRef<number | null>(null);
+  const inputRef = useRef(input);
+
+  // Update ref when input changes
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
 
   const minSwipeDistance = 50;
   const swipeThreshold = 10; // Start tracking after 10px movement
 
   const onTouchStart = (e: TouchEvent) => {
     setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    const startX = e.targetTouches[0].clientX;
+    setTouchStart(startX);
+    touchStartRef.current = startX;
+    touchEndRef.current = null;
     setIsSwiping(false);
     setSwipeProgress(0);
     setSwipeDirection(null);
     containerRef.current = e.currentTarget as HTMLElement;
   };
 
-  const onTouchMove = (e: TouchEvent) => {
-    if (touchStart === null) return;
-    
-    const currentX = e.targetTouches[0].clientX;
-    const deltaX = touchStart - currentX;
-    const absDeltaX = Math.abs(deltaX);
+  // Use native event listener for touchmove to allow preventDefault
+  useEffect(() => {
+    const handleTouchMove = (e: globalThis.TouchEvent) => {
+      if (touchStartRef.current === null) return;
+      
+      const currentX = e.touches[0].clientX;
+      const deltaX = touchStartRef.current - currentX;
+      const absDeltaX = Math.abs(deltaX);
 
-    // Start tracking swipe after threshold
-    if (absDeltaX > swipeThreshold) {
-      setIsSwiping(true);
-      
-      // Calculate progress (0-100%)
-      const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
-      const progress = Math.min(100, (absDeltaX / containerWidth) * 100);
-      setSwipeProgress(progress);
-      
-      // Determine direction
-      const direction = deltaX > 0 ? 'left' : 'right';
-      setSwipeDirection(direction);
-      
-      // Call progress callback if provided
-      if (input.onSwipeProgress) {
-        input.onSwipeProgress(progress, direction);
+      // Prevent horizontal scrolling during swipe
+      if (absDeltaX > swipeThreshold) {
+        e.preventDefault();
+        setIsSwiping(true);
+        
+        // Calculate progress (0-100%)
+        const containerWidth = containerRef.current?.clientWidth || window.innerWidth;
+        const progress = Math.min(100, (absDeltaX / containerWidth) * 100);
+        setSwipeProgress(progress);
+        
+        // Determine direction
+        const direction = deltaX > 0 ? 'left' : 'right';
+        setSwipeDirection(direction);
+        
+        // Call progress callback if provided
+        if (inputRef.current.onSwipeProgress) {
+          inputRef.current.onSwipeProgress(progress, direction);
+        }
       }
+      
+      touchEndRef.current = currentX;
+      setTouchEnd(currentX);
+    };
+
+    // Attach listener when touchStart is set
+    if (touchStart !== null) {
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
     }
-    
-    setTouchEnd(currentX);
-  };
+
+    return () => {
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [touchStart, swipeThreshold]);
 
   const onTouchEnd = () => {
-    if (!touchStart || touchEnd === null) {
+    const start = touchStartRef.current;
+    const end = touchEndRef.current;
+    
+    if (!start || end === null) {
       setIsSwiping(false);
       setSwipeProgress(0);
       setSwipeDirection(null);
+      touchStartRef.current = null;
+      touchEndRef.current = null;
       return;
     }
     
-    const distance = touchStart - touchEnd;
+    const distance = start - end;
     const absDistance = Math.abs(distance);
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -93,21 +121,22 @@ export function useSwipe(input: SwipeInput): SwipeOutput {
     setSwipeDirection(null);
 
     // Trigger callbacks if threshold met
-    if (isLeftSwipe && input.onSwipeLeft) {
-      input.onSwipeLeft();
+    if (isLeftSwipe && inputRef.current.onSwipeLeft) {
+      inputRef.current.onSwipeLeft();
     }
-    if (isRightSwipe && input.onSwipeRight) {
-      input.onSwipeRight();
+    if (isRightSwipe && inputRef.current.onSwipeRight) {
+      inputRef.current.onSwipeRight();
     }
 
     // Reset touch tracking
+    touchStartRef.current = null;
+    touchEndRef.current = null;
     setTouchStart(null);
     setTouchEnd(null);
   };
 
   return {
     onTouchStart,
-    onTouchMove,
     onTouchEnd,
     isSwiping,
     swipeProgress,

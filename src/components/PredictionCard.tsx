@@ -7,17 +7,18 @@ import {
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import {Prediction} from "../models/Prediction.ts";
-import { ShareModal } from './ShareModal';
+import { ShareBottomSheet } from './ShareBottomSheet';
 import ForwardCustomIcon from "./icons/ForwardCustomIcon.tsx";
 import { memo } from 'react';
 
 interface PredictionCardProps {
   prediction: Prediction;
   onClick?: () => void;
+  onTagClick?: (tag: { id: number; title: string; color: string }) => void;
 }
 
-export const PredictionCard = memo(function PredictionCard({ prediction, onClick }: PredictionCardProps) {
-  const [showShareModal, setShowShareModal] = useState(false);
+export const PredictionCard = memo(function PredictionCard({ prediction, onClick, onTagClick }: PredictionCardProps) {
+  const [showShareBottomSheet, setShowShareBottomSheet] = useState(false);
   const formatCount = (count: number) => {
     if (count >= 1000) {
       return `${Math.floor(count / 1000)}K`;
@@ -45,7 +46,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
           variant="ghost" 
           size="icon" 
           className="h-8 w-8 rounded-full"
-          onClick={(e) => {
+          onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
             // TODO: Add menu functionality
           }}
@@ -74,7 +75,11 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
             key={tag.id}
             variant="outline"
             style={{ backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }}
-            className="rounded-md h-6"
+            className="rounded-md h-6 cursor-pointer"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation();
+              onTagClick?.(tag);
+            }}
           >
             {tag.title}
           </Badge>
@@ -112,9 +117,9 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
         <Button
           variant="outline"
           className="rounded-full gap-2 border-gray-300 h-8"
-          onClick={(e : any) => {
+          onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
-            setShowShareModal(true);
+            setShowShareBottomSheet(true);
           }}
         >
           <span className="text-xs">{formatCount(prediction.questionForwardCount)}</span>
@@ -129,11 +134,12 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
         </Button>
       </div>
 
-      <ShareModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        predictionId={prediction.id}
-      />
+      {showShareBottomSheet && (
+        <ShareBottomSheet
+          predictionId={prediction.id}
+          onClose={() => setShowShareBottomSheet(false)}
+        />
+      )}
     </div>
   );
 });

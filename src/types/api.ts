@@ -55,6 +55,51 @@ export interface PaginatedResponse<T> {
     links: any;
 }
 
+// Tag API Response Structure
+// The tags endpoint returns a paginated response with this structure:
+// {
+//   "success": true,
+//   "data": {
+//     "current_page": 1,
+//     "data": [Tag[]],
+//     "first_page_url": "...",
+//     "from": 1,
+//     "last_page": 1,
+//     "last_page_url": "...",
+//     "links": [...],
+//     "next_page_url": null,
+//     "path": "...",
+//     "per_page": 3,
+//     "prev_page_url": null,
+//     "to": 3,
+//     "total": 3
+//   }
+// }
+export interface TagApiResponse {
+    success: boolean;
+    data: {
+        current_page: number;
+        data: Tag[];
+        first_page_url: string | null;
+        from: number;
+        last_page: number;
+        last_page_url: string | null;
+        links: Array<{
+            url: string | null;
+            label: string;
+            page: number | null;
+            active: boolean;
+        }>;
+        next_page_url: string | null;
+        path: string;
+        per_page: number;
+        prev_page_url: string | null;
+        to: number;
+        total: number;
+    };
+    message?: string;
+}
+
 // =========================
 // API ERROR
 // =========================
@@ -148,6 +193,16 @@ export interface CreatePredictionData {
     role?: string;
 }
 
+export interface CreateQuestionData {
+    title: string;
+    text?: string;
+    topic_id: number;
+    category_id?: number;
+    options: string[];
+    tags?: string[];
+    starts_at?: string;
+}
+
 export interface UpdatePredictionData {
     name?: string;
     email?: string;
@@ -169,6 +224,7 @@ export interface Tag {
 }
 
 export interface Comment {
+    id?: number;
     user_id: number;
     parent_id: number | null;
     question_id: number;
@@ -184,8 +240,46 @@ export interface Comment {
     children?: Comment[];
 }
 
+export interface AddCommentData {
+    question_id: number;
+    text: string;
+    file?: File;
+    parent_id?: number | null;
+}
+
+export interface LikeCommentResponse {
+    liked: boolean;
+    likesCount: number;
+}
+
+export interface ActivityLogData {
+    action: string;
+    meta?: Record<string, any>;
+}
+
 export interface Topic {
     id: number;
     title: string;
     category_id?: number;
+}
+
+export interface SubmitPredictionData {
+    question_option_id: number;
+    comment?: {
+        text?: string;
+        file?: File;
+    };
+}
+
+export interface SearchHistoryItem {
+    id: number;
+    query: string;
+    created_at: string;
+    type: 'search' | 'tag';
+}
+
+export interface SearchHistoryResponse {
+    success: boolean;
+    data: SearchHistoryItem[];
+    message?: string;
 }

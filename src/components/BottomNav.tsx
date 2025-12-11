@@ -37,7 +37,9 @@ export function BottomNav({ isVisible, activeTab, onTabChange, onAddQuestion }: 
         {/* Add Question Button */}
         <button
           onClick={onAddQuestion}
-          className="flex flex-col items-center gap-1 -mt-4   bg-[#FF6B35] text-white rounded-full p-3 shadow-lg hover:bg-[#FF6B35]/90 transition-all hover:scale-105"
+          className={`flex flex-col items-center gap-1 px-6 py-2 rounded-lg transition-colors ${
+            'text-[#FF6B35]'
+          }`}
         >
           <PlusCircle className="w-6 h-6" />
         </button>

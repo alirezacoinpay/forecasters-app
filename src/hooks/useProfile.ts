@@ -20,32 +20,26 @@ export function useProfile(userId?: string) {
         setLoading(true);
         setError(null);
         
-        // TODO: Replace with actual API call when endpoint is available
-        // const response = await userService.getProfile();
-        // setProfile(response);
+        const user = await userService.getCurrentUser();
+        setProfile(user);
         
-        // Mock data for now
-        setProfile({
-          id: '1',
-          name: 'forecasters',
-          email: 'user@example.com',
-          role: 'user',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-        
-        // Mock stats
+        // Mock stats (these should come from API in future)
         setStats({
           predictionsCount: 156,
           accuracy: 87,
           score: 1200,
         });
-      } catch (err) {
+      } catch (err: any) {
         const error = err as Error;
         setError(error);
-        toast.error('خطا در بارگذاری پروفایل', {
-          description: error.message || 'لطفاً دوباره تلاش کنید',
-        });
+        
+        // Don't show toast for 401 errors (handled by interceptor)
+        if (err?.status !== 401) {
+          toast.error('خطا در بارگذاری پروفایل', {
+            description: error.message || 'لطفاً دوباره تلاش کنید',
+            duration: 3000,
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -56,11 +50,34 @@ export function useProfile(userId?: string) {
     loadProfile();
   }, [loadProfile]);
 
+  const updateProfile = useCallback(async (data: { name?: string; email?: string }) => {
+    try {
+      setLoading(true);
+      const updatedUser = await userService.editProfile(data);
+      setProfile(updatedUser);
+      toast.success('پروفایل با موفقیت به‌روزرسانی شد', {
+        duration: 2000,
+      });
+      return updatedUser;
+    } catch (err: any) {
+      const error = err as Error;
+      const errorMessage = err?.data?.message || error.message || 'لطفاً دوباره تلاش کنید';
+      toast.error('خطا در به‌روزرسانی پروفایل', {
+        description: errorMessage,
+        duration: 3000,
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     profile,
     stats,
     loading,
     error,
     refresh: loadProfile,
+    updateProfile,
   };
 }

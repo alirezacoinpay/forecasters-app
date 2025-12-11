@@ -7,6 +7,7 @@ import { usePullToRefresh } from "../../hooks/usePullToRefresh";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import {Prediction} from "../../models/Prediction.ts";
 import { toast } from "sonner";
+import { activityService } from "../../services/activityService.service";
 
 interface FeedViewProps {
     onPredictionClick: (prediction: Prediction) => void;
@@ -14,62 +15,51 @@ interface FeedViewProps {
     onSwipeRight: () => void;
     searchQuery?: string;
     topicId?: number;
+    onTagClick?: (tag: { id: number; title: string; color: string }) => void;
 }
 
-export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQuery, topicId } : FeedViewProps) {
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
-    const [previousTopicId, setPreviousTopicId] = useState<number | undefined>(undefined);
-    
+export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQuery, topicId, onTagClick } : FeedViewProps) {
     const { predictions, loading, pagination, loadMore, refresh } = usePredictionFeed(searchQuery, topicId);
     
-    // Track when topic changes
+    // Log feed view activity
     useEffect(() => {
-        if (topicId !== previousTopicId && previousTopicId !== undefined) {
-            // Topic changed
-            setIsTransitioning(true);
-            setTimeout(() => {
-                setIsTransitioning(false);
-                setTransitionDirection(null);
-            }, 300);
+        if (predictions.length > 0 && !loading) {
+            activityService.logActivity('feed_view', {
+                page: 'home',
+                topic_id: topicId,
+            });
         }
-        setPreviousTopicId(topicId);
-    }, [topicId, previousTopicId]);
+    }, [predictions.length, loading, topicId]);
+    
+    // Listen for refresh events
+    useEffect(() => {
+        const handleRefresh = () => {
+            refresh();
+        };
+        window.addEventListener('refresh-feed', handleRefresh);
+        return () => {
+            window.removeEventListener('refresh-feed', handleRefresh);
+        };
+    }, [refresh]);
     
     const swipe = useSwipe({ 
         onSwipeLeft: () => {
-            setTransitionDirection('left');
-            setIsTransitioning(true);
             onSwipeLeft();
         },
         onSwipeRight: () => {
-            setTransitionDirection('right');
-            setIsTransitioning(true);
             onSwipeRight();
-        },
-        onSwipeProgress: (progress, direction) => {
-            // Track swipe progress for carousel animation
-            if (progress > 10) {
-                setTransitionDirection(direction);
-                setIsTransitioning(true);
-            }
         },
     });
     
     // Only spread event handlers, not state values
     const swipeHandlers = {
         onTouchStart: swipe.onTouchStart,
-        onTouchMove: swipe.onTouchMove,
         onTouchEnd: swipe.onTouchEnd,
     };
-    
-    const swipeProgress = swipe.swipeProgress;
-    const isSwiping = swipe.isSwiping;
     
     const { isRefreshing, elementRef } = usePullToRefresh({
         onRefresh: async () => {
             await refresh();
-            toast.success('به‌روزرسانی شد');
         },
         enabled: !loading && predictions.length > 0,
     });
@@ -86,16 +76,13 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
         <div 
             {...swipeHandlers} 
             ref={elementRef as any}
-            className="space-y-0 relative overflow-hidden"
-            style={{ minHeight: '100vh' }}
+            className="space-y-0 relative"
+            style={{ minHeight: '100vh', overflowX: 'hidden' }}
         >
             {/* Pull to refresh indicator */}
             {isRefreshing && (
-                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-background border border-border rounded-full px-4 py-2 shadow-lg">
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-[#FF6B35] border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-sm">در حال به‌روزرسانی...</span>
-                    </div>
+                <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-background border border-border rounded-full p-2 shadow-lg">
+                    <div className="w-5 h-5 border-2 border-[#FF6B35] border-t-transparent rounded-full animate-spin"></div>
                 </div>
             )}
 
@@ -108,15 +95,7 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
                 </div>
             )}
 
-            <div 
-                className="relative w-full"
-                style={{
-                    transform: isSwiping && swipeProgress > 0
-                        ? `translateX(${swipe.swipeDirection === 'left' ? -swipeProgress : swipeProgress}%)`
-                        : 'translateX(0)',
-                    transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-            >
+            <div className="relative w-full">
                 {loading && predictions.length === 0 ? (
                     // Show skeletons on initial load
                     Array.from({ length: 5 }).map((_, index) => (
@@ -130,12 +109,12 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
                                 className="fade-in"
                                 style={{ 
                                     animationDelay: `${index * 0.05}s`,
-                                    opacity: isSwiping ? Math.max(0, 1 - swipeProgress / 50) : 1,
                                 }}
                             >
                                 <PredictionCard
                                     prediction={prediction}
                                     onClick={() => onPredictionClick(prediction)}
+                                    onTagClick={onTagClick}
                                 />
                             </div>
                         ))}

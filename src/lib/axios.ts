@@ -75,33 +75,65 @@ class ApiClient {
 
     private handleErrorStatus(error: ApiError): void {
         switch (error.status) {
+            case 400:
+                // Validation errors - don't show generic toast, let components handle it
+                // Components can access error.data.errors for field-specific messages
+                if (import.meta.env.DEV) {
+                    console.warn('Validation error:', error.data);
+                }
+                break;
             case 401:
                 this.handleUnauthorized();
                 toast.error('احراز هویت نامعتبر', {
                     description: 'لطفاً دوباره وارد شوید',
+                    duration: 3000,
                 });
                 break;
             case 403:
                 toast.error('دسترسی غیرمجاز', {
                     description: 'شما مجاز به انجام این عملیات نیستید',
+                    duration: 3000,
                 });
                 break;
             case 404:
-                toast.error('منبع مورد نظر یافت نشد');
+                toast.error('منبع مورد نظر یافت نشد', {
+                    duration: 3000,
+                });
+                break;
+            case 422:
+                // Unprocessable entity - validation errors with details
+                const validationErrors = error.data?.errors;
+                if (validationErrors && typeof validationErrors === 'object') {
+                    // Show first validation error
+                    const firstError = Object.values(validationErrors)[0];
+                    const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+                    toast.error('خطا در اعتبارسنجی', {
+                        description: errorMessage || 'لطفاً اطلاعات را بررسی کنید',
+                        duration: 3000,
+                    });
+                } else {
+                    toast.error('خطا در اعتبارسنجی', {
+                        description: error.message || 'لطفاً اطلاعات را بررسی کنید',
+                        duration: 3000,
+                    });
+                }
                 break;
             case 500:
                 toast.error('خطای سرور', {
                     description: 'لطفاً بعداً تلاش کنید',
+                    duration: 3000,
                 });
                 break;
             default:
                 if (error.message?.toLowerCase().includes('network') || error.status === 0) {
                     toast.error('خطای اتصال', {
                         description: 'اتصال اینترنت را بررسی کنید',
+                        duration: 3000,
                     });
                 } else if (error.status >= 400) {
                     toast.error('خطا در درخواست', {
                         description: error.message || 'لطفاً دوباره تلاش کنید',
+                        duration: 3000,
                     });
                 }
         }

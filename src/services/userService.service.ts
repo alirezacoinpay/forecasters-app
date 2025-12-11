@@ -20,6 +20,55 @@ export const userService = {
         return response.data;
     },
 
+    /**
+     * Get current authenticated user profile
+     * 
+     * @returns Promise resolving to current user data
+     * @throws {ApiError} If the request fails (401 if not authenticated, network error, etc.)
+     * 
+     * @example
+     * ```typescript
+     * const user = await userService.getCurrentUser();
+     * console.log(user.name, user.email);
+     * ```
+     */
+    async getCurrentUser(): Promise<User> {
+        const response = await apiClient.get<ApiResponse<User>>('/me');
+        return response.data;
+    },
+
+    /**
+     * Edit current user's profile
+     * 
+     * Updates the authenticated user's profile information.
+     * Only provided fields will be updated.
+     * 
+     * @param data - Profile data to update (name/username, email, etc.)
+     * @returns Promise resolving to updated user data
+     * @throws {ApiError} If the request fails (validation error, network error, etc.)
+     * 
+     * @example
+     * ```typescript
+     * // Update username only
+     * const updatedUser = await userService.editProfile({
+     *   name: 'newusername',
+     * });
+     * 
+     * // Update email
+     * const user = await userService.editProfile({
+     *   email: 'newemail@example.com',
+     * });
+     * ```
+     */
+    async editProfile(data: UpdateUserData): Promise<User> {
+        const formData = new FormData();
+        if (data.name) formData.append('username', data.name);
+        if (data.email) formData.append('email', data.email);
+
+        const response = await apiClient.put<ApiResponse<User>>('/edit-profile', formData);
+        return response.data;
+    },
+
     // Update user
     async updateUser(id: string, userData: UpdateUserData): Promise<ApiResponse<User>> {
         const response = await apiClient.put<ApiResponse<User>>(`/users/${id}`, userData);

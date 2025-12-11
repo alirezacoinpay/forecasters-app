@@ -51,6 +51,7 @@ export function useTopics() {
                 topicsCachePromise = null;
                 toast.error('خطا در دریافت موضوعات', {
                     description: error.message || 'لطفاً دوباره تلاش کنید',
+                    duration: 3000,
                 });
                 throw error;
             });

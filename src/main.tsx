@@ -9,7 +9,20 @@
   createRoot(document.getElementById("root")!).render(
     <>
       <App />
-      <Toaster position="top-center" richColors dir="rtl" />
+      <Toaster 
+        position="top-right" 
+        richColors 
+        dir="rtl"
+        duration={3000}
+        closeButton
+        toastOptions={{
+          style: {
+            fontSize: '13px',
+            padding: '10px 14px',
+            maxWidth: '300px',
+          },
+        } as any}
+      />
     </>
   );
   

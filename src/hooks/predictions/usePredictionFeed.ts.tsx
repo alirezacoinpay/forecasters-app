@@ -58,6 +58,7 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number) {
                 if (!append) {
                     toast.error('خطا در بارگذاری پیش‌بینی‌ها', {
                         description: err.message || 'لطفاً دوباره تلاش کنید',
+                        duration: 3000,
                     });
                 }
             }

@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { TrendingUp, Calendar, Award } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useProfile } from '../hooks/useProfile';
 import { Skeleton } from './ui/skeleton';
 import { toast } from 'sonner';
+import { EditProfileModal } from './EditProfileModal';
 
 export function ProfileView() {
-  const { profile, stats, loading } = useProfile();
+  const { profile, stats, loading, updateProfile } = useProfile();
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -17,11 +20,9 @@ export function ProfileView() {
       }).catch(() => {
         // Fallback to clipboard
         navigator.clipboard.writeText(window.location.href);
-        toast.success('لینک کپی شد');
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('لینک کپی شد');
     }
   };
 
@@ -66,7 +67,12 @@ export function ProfileView() {
               کاربر فعال در پیش‌بینی‌های سیاسی و اقتصادی
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="rounded-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={() => setShowEditModal(true)}
+              >
                 ویرایش پروفایل
               </Button>
               <Button 
@@ -143,6 +149,15 @@ export function ProfileView() {
           ))}
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        currentUsername={profile?.name}
+        currentEmail={profile?.email}
+        onSave={updateProfile}
+      />
     </div>
   );
 }
