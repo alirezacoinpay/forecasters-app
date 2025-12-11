@@ -35,10 +35,10 @@ export function ShareBottomSheet({ predictionId, onClose }: ShareBottomSheetProp
         onTouchStart,
     } = useBottomSheet({
         onClose: handleClose,
-        collapsedHeight: 30,
-        halfExpandedHeight: 60,
-        fullyExpandedHeight: 85,
-        closeThreshold: 25,
+        collapsedHeight: 50,
+        halfExpandedHeight: 75,
+        fullyExpandedHeight: 95,
+        closeThreshold: 30,
         velocityThreshold: 0.5,
     });
 
