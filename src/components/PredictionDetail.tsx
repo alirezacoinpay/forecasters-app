@@ -1,26 +1,40 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, ChevronDown } from 'lucide-react';
+import { TrendingUp, ChevronDown, Heart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {Prediction} from "../models/Prediction.ts";
 import { CommentSection } from './CommentSection';
+import { PredictionsOptions } from './PredictionsOptions';
 import { toast } from 'sonner';
 import { predictionService } from '../services/predictionService.service';
 import { activityService } from '../services/activityService.service';
 import { useBottomSheet } from '../hooks/useBottomSheet';
+import { formatCount } from '../utils/format';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface PredictionDetailProps {
     prediction: Prediction;
     onClose: () => void;
     onRefresh?: () => void;
+    onTagClick?: (tag: { id: number; title: string; color: string }) => void;
 }
 
 const TRANSITION_MS = 300;
 
-export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionDetailProps) {
+export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }: PredictionDetailProps) {
+    const t = useTranslation();
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
+    const [likesCount, setLikesCount] = useState(prediction.likesCount ?? 0);
+    const [isLiking, setIsLiking] = useState(false);
+
+    // Sync state when prediction prop changes
+    useEffect(() => {
+        setIsLiked(prediction.isLiked ?? false);
+        setLikesCount(prediction.likesCount ?? 0);
+    }, [prediction.isLiked, prediction.likesCount]);
 
     const handleClose = () => {
         setIsVisible(false);
@@ -55,16 +69,54 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
         }, 100);
     }, [containerRef]);
 
+    const handleLike = async () => {
+        if (isLiking) return;
+
+        const wasLiked = isLiked;
+        const previousCount = likesCount;
+
+        // Optimistic update
+        setIsLiked(!wasLiked);
+        setLikesCount(wasLiked ? previousCount - 1 : previousCount + 1);
+        setIsLiking(true);
+
+        try {
+            const response = await predictionService.likePrediction(prediction.id);
+            
+            // Update with actual response
+            setIsLiked(response.liked);
+            setLikesCount(response.likesCount);
+
+            // Log activity
+            await activityService.logActivity('prediction_like', {
+                question_id: prediction.id,
+                liked: response.liked,
+            });
+        } catch (error: any) {
+            // Revert optimistic update on error
+            setIsLiked(wasLiked);
+            setLikesCount(previousCount);
+            
+            const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
+            toast.error(t('errors.likeError'), {
+                description: errorMessage,
+                duration: 3000,
+            });
+        } finally {
+            setIsLiking(false);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!selectedOption) {
-            toast.error('لطفاً یک گزینه انتخاب کنید', {
+            toast.error(t('errors.selectOption'), {
                 duration: 3000,
             });
             return;
         }
 
         setIsSubmitting(true);
-        const loadingToast = toast.loading('در حال ثبت پیش‌بینی...');
+        const loadingToast = toast.loading(t('ui.loading.loading'));
 
         try {
             await predictionService.submitPrediction({
@@ -78,7 +130,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
             });
 
             toast.dismiss(loadingToast);
-            toast.success('پیش‌بینی با موفقیت ثبت شد', {
+            toast.success(t('success.predictionSubmitted'), {
                 duration: 2000,
             });
 
@@ -93,8 +145,8 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
             }, 300);
         } catch (error: any) {
             toast.dismiss(loadingToast);
-            const errorMessage = error?.data?.message || error?.message || 'لطفاً دوباره تلاش کنید';
-            toast.error('خطا در ثبت پیش‌بینی', {
+            const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
+            toast.error(t('errors.submitPredictionError'), {
                 description: errorMessage,
                 duration: 3000,
             });
@@ -102,6 +154,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
             setIsSubmitting(false);
         }
     };
+    
 
     return (
         <div
@@ -190,9 +243,23 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
                             <ChevronDown className="w-5 h-5" />
                         </Button>
                         <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="gap-1.5 h-8"
+                                onClick={handleLike}
+                                disabled={isLiking}
+                            >
+                                <Heart 
+                                    className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
+                                />
+                                <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
+                                    {formatCount(likesCount)}
+                                </span>
+                            </Button>
                             <span className="text-xs text-muted-foreground">{prediction.timePast}</span>
                             <span className="text-xs text-muted-foreground">•</span>
-                            <span className="text-sm">{prediction.user?.username || 'ناشناس'}</span>
+                            <span className="text-sm">{prediction.user?.username || t('ui.anonymous')}</span>
                             <div className="w-6 h-6 rounded-full bg-[#FF6B35] flex items-center justify-center">
                                 <TrendingUp className="w-3 h-3 text-white" />
                             </div>
@@ -209,7 +276,14 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
                                         key={tag.id}
                                         variant="outline"
                                         style={{ backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }}
-                                        className="rounded-md"
+                                        className="rounded-md h-6 cursor-pointer"
+                                        onClick={(e: React.MouseEvent) => {
+                                            e.stopPropagation();
+                                            if (onTagClick) {
+                                                onTagClick(tag);
+                                                handleClose();
+                                            }
+                                        }}
                                     >
                                         {tag.title}
                                     </Badge>
@@ -217,68 +291,26 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
                             </div>
 
                             <div className="space-y-3 mt-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    {prediction.options.map((option) => {
-                                        const percentage = prediction.getOptionPercentage(option.id);
-                                        return (
-                                            <button
-                                                key={option.id}
-                                                onClick={() => setSelectedOption(String(option.id))}
-                                                className={`bg-blue-50 rounded-lg h-20 p-3 flex flex-col items-center justify-center gap-2 transition-all ${
-                                                    selectedOption === String(option.id) 
-                                                        ? 'ring-2 ring-[#FF6B35] bg-orange-50' 
-                                                        : 'hover:bg-blue-100'
-                                                }`}
-                                            >
-                                                {prediction.userPredictionsCount > 0 && (
-                                                    <div className="flex items-center gap-1 text-sm text-blue-600">
-                                                        <TrendingUp className="w-3 h-3" />
-                                                        <span>{percentage}%</span>
-                                                    </div>
-                                                )}
-
-                                                <span className="text-xs text-gray-600 text-center">
-                                                    {option.title}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <PredictionsOptions
+                                    prediction={prediction}
+                                    selectedOptionId={selectedOption}
+                                    onOptionSelect={setSelectedOption}
+                                    showHeader={true}
+                                    interactive={true}
+                                />
                             </div>
                         </div>
 
                         <div className="bg-white rounded-lg border border-border p-4 space-y-4">
                             {prediction.text && (
                                 <div className="space-y-2">
-                                    <h4 className="text-sm">توضیحات</h4>
+                                    <h4 className="text-sm">{t('ui.labels.description')}</h4>
                                     <p className="text-xs text-gray-600 leading-relaxed">{prediction.text}</p>
                                 </div>
                             )}
-
-                            {prediction.userPredictionsCount > 0 && (
-                                <div className="space-y-3">
-                                    <h4 className="text-sm text-center">پیش‌بینی کاربران</h4>
-                                    <div className="space-y-2">
-                                        {prediction.options.map((option, index) => {
-                                            const percentage = prediction.getOptionPercentage(option.id);
-                                            return (
-                                                <div key={option.id} className="space-y-1">
-                                                    <div className="flex items-center justify-between text-xs">
-                                                        <span className="text-gray-600">
-                                                            {index + 1}. {option.title} ({option.userPredictionsCount} رای)
-                                                        </span>
-                                                        <span className="text-[#FF6B35]">{percentage}%</span>
-                                                    </div>
-                                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-[#FF6B35] transition-all" style={{ width: `${percentage}%` }} />
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
                         </div>
+
+                        
                         {prediction.commentsCount > 0 && prediction.comments && prediction.comments.length > 0 && (
                             <CommentSection 
                                 comments={prediction.comments} 
@@ -301,7 +333,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh }: PredictionD
                         disabled={!selectedOption || isSubmitting}
                         className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white rounded-lg font-bold text-md w-full py-6"
                     >
-                        {isSubmitting ? 'در حال ثبت...' : 'ثبت پیش‌بینی'}
+                        {isSubmitting ? t('ui.buttons.submitting') : t('ui.buttons.submit')}
                     </Button>
                 </div>
             </div>

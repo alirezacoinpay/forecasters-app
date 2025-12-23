@@ -15,6 +15,7 @@ interface CommentSectionProps {
 }
 
 export function CommentSection({ comments, questionId, onCommentAdded }: CommentSectionProps) {
+  const t = useTranslation();
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [commentLikes, setCommentLikes] = useState<Record<string, number>>({});
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
@@ -86,8 +87,8 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
         [commentIdStr]: currentLikeCount,
       }));
       
-      const errorMessage = error?.data?.message || error?.message || 'لطفاً دوباره تلاش کنید';
-      toast.error('خطا در ثبت لایک', {
+      const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
+      toast.error(t('errors.likeError'), {
         description: errorMessage,
         duration: 3000,
       });
@@ -102,22 +103,22 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
 
   const handleAddComment = async () => {
     if (!questionId) {
-      toast.error('خطا در افزودن نظر', {
-        description: 'شناسه سوال یافت نشد',
+      toast.error(t('errors.addCommentError'), {
+        description: t('errors.questionIdNotFound'),
         duration: 3000,
       });
       return;
     }
 
     if (!commentText.trim()) {
-      toast.error('لطفاً متن نظر را وارد کنید', {
+      toast.error(t('errors.enterComment'), {
         duration: 3000,
       });
       return;
     }
 
     setIsSubmitting(true);
-    const loadingToast = toast.loading('در حال ارسال نظر...');
+    const loadingToast = toast.loading(t('ui.loading.loading'));
 
     try {
       const newComment = await commentService.addComment({
@@ -135,7 +136,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
       });
 
       toast.dismiss(loadingToast);
-      toast.success('نظر با موفقیت ثبت شد', {
+      toast.success(t('success.commentSubmitted'), {
         duration: 2000,
       });
 
@@ -161,8 +162,8 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
       }
     } catch (error: any) {
       toast.dismiss(loadingToast);
-      const errorMessage = error?.data?.message || error?.message || 'لطفاً دوباره تلاش کنید';
-      toast.error('خطا در ثبت نظر', {
+      const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
+      toast.error(t('errors.submitCommentError'), {
         description: errorMessage,
         duration: 3000,
       });
@@ -176,7 +177,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
     if (file) {
       // Validate file size (e.g., max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('حجم فایل باید کمتر از ۵ مگابایت باشد', {
+        toast.error(t('errors.fileSize'), {
           duration: 3000,
         });
         return;
@@ -266,7 +267,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
     return (
       <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-border">
         <Textarea
-          placeholder={isReplying ? "پاسخ خود را بنویسید..." : "نظر خود را بنویسید..."}
+          placeholder={isReplying ? t('ui.placeholders.enterComment') : t('ui.placeholders.enterComment')}
           value={commentText}
           onChange={(e) => {
             setCommentText(e.target.value);

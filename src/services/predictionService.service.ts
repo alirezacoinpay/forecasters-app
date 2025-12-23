@@ -8,17 +8,18 @@ import {
     PaginatedResponse,
     ApiResponse,
     SubmitPredictionData,
+    LikePredictionResponse,
 } from '../types/api';
 
 export const predictionService = {
     // Get predictions list with pagination
     async getPredictionFeed(params?: PredictionListParams): Promise<ApiResponse<Prediction[]>> {
         const response = await apiClient.get<ApiResponse<Prediction[]>>(
-            '/question-feed',
+            '/prediction-feed',
             { params }
         );
-    
-        
+
+
         return response;
     },
 
@@ -51,12 +52,12 @@ export const predictionService = {
         if (data.starts_at) {
             formData.append('starts_at', data.starts_at);
         }
-        
+
         // Add options
         data.options.forEach((option, index) => {
             formData.append(`options[${index}]`, option);
         });
-        
+
         // Add tags
         if (data.tags && data.tags.length > 0) {
             data.tags.forEach((tag, index) => {
@@ -68,7 +69,7 @@ export const predictionService = {
             '/questions',
             formData
         );
-        
+
         return response;
     },
 
@@ -83,21 +84,21 @@ export const predictionService = {
 
     /**
      * Submit a prediction (select an option for a question)
-     * 
+     *
      * This method sends a FormData request with the selected option and optional comment.
      * The comment can include text and/or a file attachment.
-     * 
+     *
      * @param data - Prediction data including question_option_id and optional comment with text/file
      * @returns Promise resolving to API response containing the created prediction
      * @throws {ApiError} If the request fails (validation error, network error, etc.)
-     * 
+     *
      * @example
      * ```typescript
      * // Submit prediction without comment
      * const prediction = await predictionService.submitPrediction({
      *   question_option_id: 7,
      * });
-     * 
+     *
      * // Submit prediction with text comment
      * const predictionWithComment = await predictionService.submitPrediction({
      *   question_option_id: 7,
@@ -105,7 +106,7 @@ export const predictionService = {
      *     text: 'I think this will happen because...',
      *   },
      * });
-     * 
+     *
      * // Submit prediction with file
      * const predictionWithFile = await predictionService.submitPrediction({
      *   question_option_id: 7,
@@ -119,7 +120,7 @@ export const predictionService = {
     async submitPrediction(data: SubmitPredictionData): Promise<ApiResponse<Prediction>> {
         const formData = new FormData();
         formData.append('question_option_id', String(data.question_option_id));
-        
+
         if (data.comment) {
             if (data.comment.text) {
                 formData.append('comment[text]', data.comment.text);
@@ -133,7 +134,34 @@ export const predictionService = {
             '/predictions',
             formData
         );
-        
+
         return response;
+    },
+
+    /**
+     * Like or unlike a prediction (question)
+     *
+     * This method toggles the like status of a prediction. If the prediction is currently
+     * unliked, it will be liked. If it's currently liked, it will be unliked.
+     *
+     * Backend endpoint: POST `/prediction-likes/:id/toggle`
+     *
+     * @param questionId - The ID of the question/prediction to like/unlike
+     * @returns Promise resolving to response with like status and updated like count
+     * @throws {ApiError} If the request fails (network error, question not found, etc.)
+     *
+     * @example
+     * ```typescript
+     * const response = await predictionService.likePrediction(123);
+     * console.log(response.liked); // true if liked, false if unliked
+     * console.log(response.likesCount); // updated like count
+     * ```
+     */
+    async likePrediction(questionId: number | string): Promise<LikePredictionResponse> {
+        const response = await apiClient.post<ApiResponse<LikePredictionResponse>>(
+            `/prediction-likes/${questionId}/toggle`
+        );
+        
+        return response.data;
     },
 };

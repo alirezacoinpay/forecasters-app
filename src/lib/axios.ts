@@ -7,10 +7,16 @@ import axios, {
 } from 'axios';
 import { ApiResponse, ApiError } from '../types/api';
 import { toast } from 'sonner';
+import { getTranslation } from '../lang';
 
 class ApiClient {
     private client: AxiosInstance;
     private readonly baseURL: string;
+    private isRefreshing = false;
+    private failedQueue: Array<{
+        resolve: (value?: any) => void;
+        reject: (error?: any) => void;
+    }> = [];
 
     constructor() {
         this.baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -21,6 +27,7 @@ class ApiClient {
             headers: {
                 'Content-Type': 'application/json',
             },
+            withCredentials: true, // Enable cookies for session-based authentication
         });
 
         this.setupInterceptors();
@@ -32,7 +39,7 @@ class ApiClient {
                 this.handleRequest(config);
                 return config;
             },
-            (error: any) => Promise.reject(this.handleError(error))
+            (error: any) => Promise.reject(error)
         );
 
         this.client.interceptors.response.use(
@@ -40,29 +47,83 @@ class ApiClient {
                 this.handleResponse(response);
                 return response;
             },
-            (error: AxiosError) => Promise.reject(this.handleError(error))
+            async (error: AxiosError) => {
+                try {
+                    // handleError will either return a response (from retry) or reject with error
+                    return await this.handleError(error);
+                } catch (err) {
+                    return Promise.reject(err);
+                }
+            }
         );
     }
 
     private handleRequest(config: InternalAxiosRequestConfig): void {
-        const token = this.getAuthToken();
-        if (token && config.headers) {
-            config.headers['Authorization'] = `Bearer ${token}`;
-        }
-
-    
+        // Cookies are automatically sent with requests when withCredentials is true
+        // No need to manually add Authorization header for cookie-based sessions
     }
 
     private handleResponse(response: AxiosResponse): void {
       
     }
 
-    private handleError(error: AxiosError | any): ApiError {
+    private async handleError(error: AxiosError | any): Promise<any> {
         const apiError: ApiError = {
             message: error.response?.data?.message || error.message || 'An unknown error occurred',
             status: error.response?.status || 0,
             data: error.response?.data,
         };
+
+        // Handle 401/403 by automatically logging in
+        if (apiError.status === 401 || apiError.status === 403) {
+            const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+            
+            // Prevent infinite loops - don't retry if this is already a retry or if it's the login/me endpoint
+            if (originalRequest && !originalRequest._retry && 
+                originalRequest.url !== '/login' && 
+                originalRequest.url !== '/me') {
+                
+                originalRequest._retry = true;
+
+                // If we're already refreshing, queue this request
+                if (this.isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        this.failedQueue.push({ resolve, reject });
+                    }).then(() => {
+                        return this.client(originalRequest);
+                    }).catch((err) => {
+                        return Promise.reject(err);
+                    });
+                }
+
+                this.isRefreshing = true;
+
+                try {
+                    // Automatically login (calls /login with no body) - silently
+                    await this.client.post('/login', {});
+                    
+                    // Process queued requests
+                    this.processQueue(null);
+                    
+                    // Retry the original request - return the response
+                    return this.client(originalRequest);
+                } catch (loginError: any) {
+                    // Login failed, reject queued requests
+                    this.processQueue(loginError);
+                    
+                    // Don't show error toast for automatic login failures
+                    if (import.meta.env.DEV) {
+                        console.warn('Automatic login failed:', loginError);
+                    }
+                    
+                    // Continue to show the original error
+                    this.handleErrorStatus(apiError);
+                    return Promise.reject(apiError);
+                } finally {
+                    this.isRefreshing = false;
+                }
+            }
+        }
 
         if (import.meta.env.DEV) {
             console.error('❌ API Error:', apiError);
@@ -70,7 +131,18 @@ class ApiClient {
 
         this.handleErrorStatus(apiError);
 
-        return apiError;
+        return Promise.reject(apiError);
+    }
+
+    private processQueue(error: any): void {
+        this.failedQueue.forEach((prom) => {
+            if (error) {
+                prom.reject(error);
+            } else {
+                prom.resolve();
+            }
+        });
+        this.failedQueue = [];
     }
 
     private handleErrorStatus(error: ApiError): void {
@@ -83,20 +155,15 @@ class ApiClient {
                 }
                 break;
             case 401:
-                this.handleUnauthorized();
-                toast.error('احراز هویت نامعتبر', {
-                    description: 'لطفاً دوباره وارد شوید',
-                    duration: 3000,
-                });
+                // Don't show toast for 401 - automatic login will handle it silently
+                // Only show toast if automatic login already failed (handled in handleError)
                 break;
             case 403:
-                toast.error('دسترسی غیرمجاز', {
-                    description: 'شما مجاز به انجام این عملیات نیستید',
-                    duration: 3000,
-                });
+                // Don't show toast for 403 - automatic login will handle it silently
+                // Only show toast if automatic login already failed (handled in handleError)
                 break;
             case 404:
-                toast.error('منبع مورد نظر یافت نشد', {
+                toast.error(getTranslation('errors.notFound'), {
                     duration: 3000,
                 });
                 break;
@@ -107,32 +174,32 @@ class ApiClient {
                     // Show first validation error
                     const firstError = Object.values(validationErrors)[0];
                     const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
-                    toast.error('خطا در اعتبارسنجی', {
-                        description: errorMessage || 'لطفاً اطلاعات را بررسی کنید',
+                    toast.error(getTranslation('errors.validation'), {
+                        description: errorMessage || getTranslation('errors.checkInfo'),
                         duration: 3000,
                     });
                 } else {
-                    toast.error('خطا در اعتبارسنجی', {
-                        description: error.message || 'لطفاً اطلاعات را بررسی کنید',
+                    toast.error(getTranslation('errors.validation'), {
+                        description: error.message || getTranslation('errors.checkInfo'),
                         duration: 3000,
                     });
                 }
                 break;
             case 500:
-                toast.error('خطای سرور', {
-                    description: 'لطفاً بعداً تلاش کنید',
+                toast.error(getTranslation('errors.server'), {
+                    description: getTranslation('errors.tryLater'),
                     duration: 3000,
                 });
                 break;
             default:
                 if (error.message?.toLowerCase().includes('network') || error.status === 0) {
-                    toast.error('خطای اتصال', {
-                        description: 'اتصال اینترنت را بررسی کنید',
+                    toast.error(getTranslation('errors.network'), {
+                        description: getTranslation('errors.checkInternet'),
                         duration: 3000,
                     });
                 } else if (error.status >= 400) {
-                    toast.error('خطا در درخواست', {
-                        description: error.message || 'لطفاً دوباره تلاش کنید',
+                    toast.error(getTranslation('errors.request'), {
+                        description: error.message || getTranslation('errors.tryAgain'),
                         duration: 3000,
                     });
                 }
@@ -140,13 +207,10 @@ class ApiClient {
     }
 
     private handleUnauthorized(): void {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-    }
-
-    private getAuthToken(): string | null {
-        return localStorage.getItem('authToken');
+        // With cookie-based sessions, we don't need to clear localStorage
+        // The session cookie will be cleared by the backend on logout
+        // For 401 errors, we'll let the auto-auth hook handle re-authentication
+        // Don't redirect to /login since we have automatic authentication
     }
 
     // Public methods

@@ -2,6 +2,23 @@ import { predictionService } from "../services/predictionService.service";
 import { Prediction } from "../models/Prediction";
 
 export class PredictionRepository {
+    /**
+     * Fetch predictions from the API
+     * 
+     * @param params - Query parameters including:
+     *   - page: Page number
+     *   - paginate: Items per page
+     *   - search: Search query string
+     *   - topic_id: Filter by topic ID
+     *   - prediction_id: Deep link support - when provided, the backend should return
+     *     predictions with the specified prediction at the top of the list
+     * 
+     * Backend API requirement:
+     * The `/question-feed` endpoint should accept a `prediction_id` parameter.
+     * When this parameter is provided, the response should include predictions
+     * with the specified prediction at the top of the list, followed by other
+     * predictions in the feed.
+     */
     async fetch(params: any) {
         const response = await predictionService.getPredictionFeed(params);
 

@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -26,10 +27,13 @@ export function ConfirmDialog({
   onConfirm,
   title,
   description,
-  confirmText = 'تأیید',
-  cancelText = 'لغو',
+  confirmText,
+  cancelText,
   variant = 'default',
 }: ConfirmDialogProps) {
+  const t = useTranslation();
+  const defaultConfirmText = confirmText || t('ui.buttons.confirm');
+  const defaultCancelText = cancelText || t('ui.buttons.cancel');
   const handleConfirm = async () => {
     await onConfirm();
     onClose();
@@ -43,12 +47,12 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>{cancelText}</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>{defaultCancelText}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : ''}
           >
-            {confirmText}
+            {defaultConfirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

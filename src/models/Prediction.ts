@@ -18,6 +18,8 @@ export class Prediction {
     commentsCount: number;
     userPredictionsCount: number;
     questionForwardCount: number;
+    likesCount: number;
+    isLiked: boolean;
 
     constructor(data: any) {
         // Debug logging
@@ -42,6 +44,8 @@ export class Prediction {
         this.commentsCount = data.commentsCount ?? 0;
         this.userPredictionsCount = data.userPredictionsCount ?? 0;
         this.questionForwardCount = data.questionForwardCount ?? 0;
+        this.likesCount = data.likesCount ?? data.likes_count ?? 0;
+        this.isLiked = data.isLiked ?? data.is_liked ?? false;
 
      
     }

@@ -11,6 +11,7 @@ import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { searchService } from '../services/searchService.service';
 import { SearchHistoryItem } from '../types/api';
 import { Tag } from '../types/api';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SearchPageProps {
   onClose: () => void;
@@ -19,6 +20,7 @@ interface SearchPageProps {
 }
 
 export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPageProps) {
+  const t = useTranslation();
   const [searchQuery, setSearchQuery] = useState(selectedTag?.title || '');
   const [debouncedQuery, setDebouncedQuery] = useState(selectedTag?.title || '');
   const [recentSearches, setRecentSearches] = useState<SearchHistoryItem[]>([]);
@@ -117,7 +119,7 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               ref={inputRef}
-              placeholder="Search"
+              placeholder={t('ui.placeholders.search')}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 pr-10"
@@ -198,7 +200,7 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
         {/* Trending Predictions Section */}
         {showTrending && (
           <div>
-            <h2 className="text-lg font-bold mb-4">Trending Today</h2>
+            <h2 className="text-lg font-bold mb-4">{t('ui.search.trendingToday')}</h2>
             {loading && predictions.length === 0 ? (
               <div className="space-y-0">
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -208,21 +210,17 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
             ) : predictions.length > 0 ? (
               <div className="space-y-0">
                 {predictions.map((prediction) => (
-                  <div
+                  <PredictionCard
                     key={prediction.id}
+                    prediction={prediction}
                     onClick={() => onPredictionClick(prediction)}
-                  >
-                    <PredictionCard
-                      prediction={prediction}
-                      onClick={() => {}}
-                    />
-                  </div>
+                  />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
                 <p className="text-muted-foreground text-center">
-                  No trending predictions available
+                  {t('ui.emptyStates.noTrending')}
                 </p>
               </div>
             )}
@@ -241,24 +239,20 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
             ) : predictions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <p className="text-muted-foreground text-center mb-2">
-                  No results found
+                  {t('ui.emptyStates.noResults')}
                 </p>
                 <p className="text-sm text-muted-foreground text-center">
-                  Try different keywords
+                  {t('ui.emptyStates.tryDifferentKeywords')}
                 </p>
               </div>
             ) : (
               <div className="space-y-0">
                 {predictions.map((prediction) => (
-                  <div
+                  <PredictionCard
                     key={prediction.id}
+                    prediction={prediction}
                     onClick={() => onPredictionClick(prediction)}
-                  >
-                    <PredictionCard
-                      prediction={prediction}
-                      onClick={() => {}}
-                    />
-                  </div>
+                  />
                 ))}
                 {/* Infinite scroll sentinel */}
                 <div ref={sentinelRef} className="h-4" />

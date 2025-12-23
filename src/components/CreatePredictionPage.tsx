@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { predictionService } from '../services/predictionService.service';
 import { tagService } from '../services/tagService.service';
 import { Topic, Tag } from '../types/api';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface CreatePredictionPageProps {
   onClose: () => void;
@@ -17,6 +18,7 @@ interface CreatePredictionPageProps {
 }
 
 export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopicChange }: CreatePredictionPageProps) {
+  const t = useTranslation();
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [options, setOptions] = useState(['', '']);
@@ -178,28 +180,28 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
   const handleSubmit = async () => {
     // Validation
     if (!title.trim()) {
-      toast.error('Please enter a title');
+      toast.error(t('errors.enterTitle'));
       return;
     }
 
     if (title.trim().length < 10) {
-      toast.error('Title must be at least 10 characters');
+      toast.error(t('errors.titleMinLength'));
       return;
     }
 
     const validOptions = options.filter(opt => opt.trim());
     if (validOptions.length < 2) {
-      toast.error('At least 2 options are required');
+      toast.error(t('errors.minOptions'));
       return;
     }
 
     if (!currentTopicId) {
-      toast.error('Please select a topic');
+      toast.error(t('errors.selectTopic'));
       return;
     }
 
     setIsSubmitting(true);
-    const loadingToast = toast.loading('Publishing...');
+    const loadingToast = toast.loading(t('ui.buttons.publishing'));
 
     try {
       const selectedTopic = topics.find(t => t.id === currentTopicId);
@@ -216,7 +218,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
       });
 
       toast.dismiss(loadingToast);
-      toast.success('Question published successfully');
+      toast.success(t('success.questionPublished'));
 
       // Reset form
       setTitle('');
@@ -233,8 +235,8 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
       }, 500);
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error('Error publishing question', {
-        description: error instanceof Error ? error.message : 'Please try again',
+      toast.error(t('errors.publishQuestionError'), {
+        description: error instanceof Error ? error.message : t('errors.tryAgain'),
       });
     } finally {
       setIsSubmitting(false);
@@ -280,7 +282,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
             className="flex items-center justify-between px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-left"
           >
             <span className="text-sm text-muted-foreground">
-              {currentTopic ? currentTopic.title : 'Select a community'}
+              {currentTopic ? currentTopic.title : t('ui.labels.topic')}
             </span>
             <ChevronDown className={`w-4 h-4 text-muted-foreground ml-2 transition-transform ${showTopicDropdown ? 'rotate-180' : ''}`} />
           </button>
@@ -311,7 +313,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
         {/* Title Input - No background */}
         <Textarea
           ref={titleInputRef}
-          placeholder="Title"
+          placeholder={t('ui.placeholders.enterTitle')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="min-h-[60px] resize-none text-lg font-semibold border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 placeholder:text-muted-foreground bg-transparent"
@@ -337,7 +339,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
         <div className="relative">
           <Textarea
             ref={textareaRef}
-            placeholder="body text (optional)"
+            placeholder={t('ui.placeholders.enterDescription')}
             value={text}
             onChange={(e) => handleTextChange(e.target.value)}
             onKeyDown={(e) => {
@@ -352,7 +354,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
           {showTagSuggestions && tagSuggestions.length > 0 && (
             <div className="absolute top-full right-0 mt-1 z-50 flex flex gap-1 bg-gray-100 rounded-lg p-2">
               {isLoadingTags ? (
-                <div className="text-xs text-muted-foreground px-1">Loading...</div>
+                <div className="text-xs text-muted-foreground px-1">{t('ui.loading.loading')}</div>
               ) : (
                 tagSuggestions.map((tag) => (
                   <Badge
@@ -400,7 +402,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
                         selectedDays === days ? 'bg-gray-100 text-[#FF6B35]' : ''
                       }`}
                     >
-                      {days} {days === 1 ? 'day' : 'days'}
+                      {days} {t('ui.labels.days')}
                     </button>
                   ))}
                 </div>
@@ -412,7 +414,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
             {options.map((option, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Input
-                  placeholder={`Option ${index + 1}`}
+                  placeholder={t('ui.placeholders.enterOption')}
                   value={option}
                   onChange={(e) => updateOption(index, e.target.value)}
                   className="flex-1 bg-background"

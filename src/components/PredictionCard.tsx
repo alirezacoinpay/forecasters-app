@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     MessageCircle,
     MoreHorizontal,
     TrendingUp,
+    Heart,
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import {Prediction} from "../models/Prediction.ts";
 import { ShareBottomSheet } from './ShareBottomSheet';
 import ForwardCustomIcon from "./icons/ForwardCustomIcon.tsx";
+import { PredictionsOptions } from './PredictionsOptions';
+import { formatCount } from '../utils/format';
 import { memo } from 'react';
+import { predictionService } from '../services/predictionService.service';
+import { activityService } from '../services/activityService.service';
+import { toast } from 'sonner';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface PredictionCardProps {
   prediction: Prediction;
@@ -18,12 +25,56 @@ interface PredictionCardProps {
 }
 
 export const PredictionCard = memo(function PredictionCard({ prediction, onClick, onTagClick }: PredictionCardProps) {
+  const t = useTranslation();
   const [showShareBottomSheet, setShowShareBottomSheet] = useState(false);
-  const formatCount = (count: number) => {
-    if (count >= 1000) {
-      return `${Math.floor(count / 1000)}K`;
+  const touchHandledRef = useRef(false);
+  const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
+  const [likesCount, setLikesCount] = useState(prediction.likesCount ?? 0);
+  const [isLiking, setIsLiking] = useState(false);
+
+  // Sync state when prediction prop changes
+  useEffect(() => {
+    setIsLiked(prediction.isLiked ?? false);
+    setLikesCount(prediction.likesCount ?? 0);
+  }, [prediction.isLiked, prediction.likesCount]);
+
+  const handleLike = async (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    if (isLiking) return;
+
+    const wasLiked = isLiked;
+    const previousCount = likesCount;
+
+    // Optimistic update
+    setIsLiked(!wasLiked);
+    setLikesCount(wasLiked ? previousCount - 1 : previousCount + 1);
+    setIsLiking(true);
+
+    try {
+      const response = await predictionService.likePrediction(prediction.id);
+      
+      // Update with actual response
+      setIsLiked(response.liked);
+      setLikesCount(response.likesCount);
+
+      // Log activity
+      await activityService.logActivity('prediction_like', {
+        question_id: prediction.id,
+        liked: response.liked,
+      });
+    } catch (error: any) {
+      // Revert optimistic update on error
+      setIsLiked(wasLiked);
+      setLikesCount(previousCount);
+      
+      const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
+      toast.error(t('errors.likeError'), {
+        description: errorMessage,
+        duration: 3000,
+      });
+    } finally {
+      setIsLiking(false);
     }
-    return count.toString();
   };
     return (
     <div
@@ -32,7 +83,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
       dir="rtl"
       role="button"
       tabIndex={0}
-      aria-label={`پیش‌بینی: ${prediction.title}`}
+      aria-label={`${t('ui.labels.predictions')}: ${prediction.title}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -56,7 +107,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">{prediction.timePast}</span>
           <span className="text-sm text-muted-foreground">•</span>
-          <span className="text-sm">{prediction.user?.username || 'ناشناس'}</span>
+          <span className="text-sm">{prediction.user?.username || t('ui.anonymous')}</span>
           <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
             <TrendingUp className="w-3 h-3 text-white" />
           </div>
@@ -87,43 +138,52 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
       </div>
 
       {/* Options */}
-      <div className="grid grid-cols-3 gap-2">
-        {prediction.options.map((option) => {
-          const percentage = prediction.userPredictionsCount > 0 
-            ? prediction.getOptionPercentage(option.id)
-            : 0;
-          return (
-            <div
-              key={option.id}
-              className="bg-blue-50 rounded-lg h-20 p-3 flex flex-col items-center justify-center gap-2"
-            >
-              {prediction.userPredictionsCount > 0 && (
-                <div className="flex items-center gap-1 text-sm text-blue-600">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>{percentage}%</span>
-                </div>
-              )}
-
-              <span className="text-xs text-gray-600 text-center">
-                {option.title}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <PredictionsOptions 
+        prediction={prediction}
+        showHeader={true}
+        interactive={false}
+      />
 
       {/* Actions */}
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
           className="rounded-full gap-2 border-gray-300 h-8"
+          onTouchStart={(e: React.TouchEvent) => {
+            e.stopPropagation();
+            touchHandledRef.current = true;
+            setShowShareBottomSheet(true);
+            // Reset after a delay to allow click event to be ignored
+            setTimeout(() => {
+              touchHandledRef.current = false;
+            }, 300);
+          }}
           onClick={(e: React.MouseEvent) => {
             e.stopPropagation();
+            // Prevent click if it was triggered by a touch event
+            if (touchHandledRef.current) {
+              e.preventDefault();
+              return;
+            }
             setShowShareBottomSheet(true);
           }}
         >
           <span className="text-xs">{formatCount(prediction.questionForwardCount)}</span>
           <ForwardCustomIcon className="w-4 h-4"/>
+        </Button>
+        <Button
+          variant="outline"
+          className="rounded-full gap-2 border-gray-300 h-8"
+          disabled={isLiking}
+          onClick={handleLike}
+          onTouchStart={handleLike}
+        >
+          <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
+            {formatCount(likesCount)}
+          </span>
+          <Heart 
+            className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
+          />
         </Button>
         <Button
           variant="outline"

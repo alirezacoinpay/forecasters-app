@@ -64,6 +64,7 @@ export const userService = {
         const formData = new FormData();
         if (data.name) formData.append('username', data.name);
         if (data.email) formData.append('email', data.email);
+        if (data.mobile) formData.append('mobile', data.mobile);
 
         const response = await apiClient.put<ApiResponse<User>>('/edit-profile', formData);
         return response.data;

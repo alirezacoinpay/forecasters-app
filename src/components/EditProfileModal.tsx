@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUsername?: string;
   currentEmail?: string;
-  onSave: (data: { name?: string; email?: string }) => Promise<void>;
+  currentMobile?: string;
+  emailVerified?: boolean;
+  mobileVerified?: boolean;
+  onSave: (data: { name?: string; email?: string; mobile?: string }) => Promise<void>;
 }
 
 export function EditProfileModal({
@@ -17,10 +21,15 @@ export function EditProfileModal({
   onClose,
   currentUsername,
   currentEmail,
+  currentMobile,
+  emailVerified,
+  mobileVerified,
   onSave,
 }: EditProfileModalProps) {
+  const t = useTranslation();
   const [username, setUsername] = useState(currentUsername || '');
   const [email, setEmail] = useState(currentEmail || '');
+  const [mobile, setMobile] = useState(currentMobile || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const modalRef = useRef<HTMLDivElement>(null);
@@ -30,24 +39,29 @@ export function EditProfileModal({
     if (isOpen) {
       setUsername(currentUsername || '');
       setEmail(currentEmail || '');
+      setMobile(currentMobile || '');
       setErrors({});
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, currentUsername, currentEmail]);
+  }, [isOpen, currentUsername, currentEmail, currentMobile]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!username.trim()) {
-      newErrors.username = 'لطفاً نام کاربری را وارد کنید';
+      newErrors.username = t('errors.enterUsername');
     } else if (username.trim().length < 3) {
-      newErrors.username = 'نام کاربری باید حداقل ۳ کاراکتر باشد';
+      newErrors.username = t('errors.usernameMinLength');
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'ایمیل معتبر نیست';
+      newErrors.email = t('errors.invalidEmail');
+    }
+
+    if (mobile && !/^\+?[1-9]\d{1,14}$/.test(mobile.replace(/\s/g, ''))) {
+      newErrors.mobile = t('errors.invalidMobile');
     }
 
     setErrors(newErrors);
@@ -56,19 +70,20 @@ export function EditProfileModal({
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      toast.error('لطفاً فرم را به درستی پر کنید', {
+      toast.error(t('errors.formInvalid'), {
         duration: 3000,
       });
       return;
     }
 
     setIsSubmitting(true);
-    const loadingToast = toast.loading('در حال به‌روزرسانی...');
+    const loadingToast = toast.loading(t('ui.buttons.updating'));
 
     try {
       await onSave({
         name: username.trim() !== currentUsername ? username.trim() : undefined,
         email: email.trim() !== currentEmail ? email.trim() : undefined,
+        mobile: mobile.trim() !== currentMobile ? mobile.trim() : undefined,
       });
 
       toast.dismiss(loadingToast);
@@ -103,7 +118,7 @@ export function EditProfileModal({
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />
           </Button>
-          <h3 id="edit-profile-title">ویرایش پروفایل</h3>
+          <h3 id="edit-profile-title">{t('ui.labels.editProfile')}</h3>
           <div className="w-10"></div>
         </div>
 
@@ -111,10 +126,10 @@ export function EditProfileModal({
         <div className="p-6 space-y-4">
           {/* Username Input */}
           <div className="space-y-2">
-            <label className="text-sm">نام کاربری</label>
+            <label className="text-sm">{t('ui.labels.username')}</label>
             <Input
               ref={inputRef}
-              placeholder="نام کاربری"
+              placeholder={t('ui.placeholders.enterUsername')}
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value);
@@ -137,26 +152,68 @@ export function EditProfileModal({
 
           {/* Email Input */}
           <div className="space-y-2">
-            <label className="text-sm">ایمیل (اختیاری)</label>
-            <Input
-              type="email"
-              placeholder="ایمیل"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errors.email) {
-                  setErrors((prev) => ({ ...prev, email: '' }));
-                }
-              }}
-              className={errors.email ? 'border-destructive' : ''}
-              dir="rtl"
-              aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? 'email-error' : undefined}
-              disabled={isSubmitting}
-            />
+            <label className="text-sm flex items-center gap-2">
+              {t('ui.labels.emailOptional')}
+              {emailVerified && email && (
+                <CheckCircle2 className="w-4 h-4 text-green-500" title={t('ui.labels.verified')} />
+              )}
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder={t('ui.placeholders.enterEmail')}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) {
+                    setErrors((prev) => ({ ...prev, email: '' }));
+                  }
+                }}
+                className={`${errors.email ? 'border-destructive' : ''} ${email ? 'pr-10' : ''}`}
+                dir="ltr"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                disabled={isSubmitting}
+              />
+            </div>
             {errors.email && (
               <p id="email-error" className="text-xs text-destructive" role="alert">
                 {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Mobile Input */}
+          <div className="space-y-2">
+            <label className="text-sm flex items-center gap-2">
+              {t('ui.labels.mobileOptional')}
+              {mobileVerified && mobile && (
+                <CheckCircle2 className="w-4 h-4 text-green-500" title={t('ui.labels.verified')} />
+              )}
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="tel"
+                placeholder={t('ui.placeholders.enterMobile')}
+                value={mobile}
+                onChange={(e) => {
+                  setMobile(e.target.value);
+                  if (errors.mobile) {
+                    setErrors((prev) => ({ ...prev, mobile: '' }));
+                  }
+                }}
+                className={`${errors.mobile ? 'border-destructive' : ''} ${mobile ? 'pr-10' : ''}`}
+                dir="ltr"
+                aria-invalid={!!errors.mobile}
+                aria-describedby={errors.mobile ? 'mobile-error' : undefined}
+                disabled={isSubmitting}
+              />
+            </div>
+            {errors.mobile && (
+              <p id="mobile-error" className="text-xs text-destructive" role="alert">
+                {errors.mobile}
               </p>
             )}
           </div>
@@ -167,7 +224,7 @@ export function EditProfileModal({
             disabled={isSubmitting || !username.trim()}
             className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white rounded-full py-6"
           >
-            {isSubmitting ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
+            {isSubmitting ? t('ui.buttons.saving') : t('ui.buttons.save')}
           </Button>
         </div>
       </div>

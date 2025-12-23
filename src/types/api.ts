@@ -128,8 +128,6 @@ export interface RegisterData {
 }
 
 export interface AuthResponse {
-    token: string;
-    refreshToken: string;
     user: User;
 }
 
@@ -137,10 +135,16 @@ export interface User {
     id: string;
     name: string;
     email: string;
+    mobile?: string;
     avatar?: string;
     role: 'admin' | 'user';
     createdAt: string;
     updatedAt: string;
+    session_id?: string;
+    device_fingerprint?: string;
+    is_verified?: boolean;
+    email_verified_at?: string;
+    mobile_verified_at?: string;
 }
 
 export interface UserListParams {
@@ -153,6 +157,7 @@ export interface UserListParams {
 export interface UpdateUserData {
     name?: string;
     email?: string;
+    mobile?: string;
     role?: string;
 }
 
@@ -185,6 +190,8 @@ export interface PredictionListParams {
     search?: string;
     sort?: string;
     topic_id?: number;
+    prediction_id?: number;
+    predictionId?: number;
 }
 
 export interface CreatePredictionData {
@@ -248,6 +255,11 @@ export interface AddCommentData {
 }
 
 export interface LikeCommentResponse {
+    liked: boolean;
+    likesCount: number;
+}
+
+export interface LikePredictionResponse {
     liked: boolean;
     likesCount: number;
 }
