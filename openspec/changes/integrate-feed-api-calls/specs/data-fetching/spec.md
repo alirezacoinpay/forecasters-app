@@ -5,7 +5,7 @@ The system SHALL submit user predictions to the backend API when a user selects 
 
 #### Scenario: Successful prediction submission
 - **WHEN** user selects a prediction option and clicks submit
-- **THEN** the system sends POST request to `/predictions` with FormData containing `question_option_id`, optional `comment[text]`, and optional `comment[file]`
+- **THEN** the system sends POST request to `/predictions` with FormData containing `prediction_option_id`, optional `comment[text]`, and optional `comment[file]`
 - **AND** the system shows a loading indicator during the request
 - **AND** on success, the system closes the prediction detail modal
 - **AND** the system refreshes the feed to show updated prediction counts
@@ -52,7 +52,7 @@ The system SHALL fetch prediction feed data from the backend API with proper pag
 
 #### Scenario: Fetch feed with pagination
 - **WHEN** the feed page loads or user scrolls to load more
-- **THEN** the system sends GET request to `/question-feed` with pagination parameters
+- **THEN** the system sends GET request to `/prediction-feed` with pagination parameters
 - **AND** the system handles paginated response with meta information
 - **AND** the system supports infinite scroll for loading additional pages
 

@@ -28,7 +28,7 @@ The system SHALL collect comprehensive activity data including user actions, dev
 #### Scenario: Activity logging with metadata
 - **WHEN** a user performs an action (e.g., view feed, submit prediction, like comment)
 - **THEN** the activity is logged with the action name
-- **AND** relevant metadata is included (e.g., page, question_id, comment_id)
+- **AND** relevant metadata is included (e.g., page, prediction_id, comment_id)
 - **AND** device type (mobile/desktop) is automatically detected and included
 - **AND** platform information (web/android/ios) is included
 

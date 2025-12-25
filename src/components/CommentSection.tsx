@@ -7,14 +7,15 @@ import { toast } from 'sonner';
 import { commentService } from '../services/commentService.service';
 import { activityService } from '../services/activityService.service';
 import { Comment as ApiComment } from '../types/api';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface CommentSectionProps {
   comments: Comment[];
-  questionId?: number;
+  predictionId?: number;
   onCommentAdded?: () => void;
 }
 
-export function CommentSection({ comments, questionId, onCommentAdded }: CommentSectionProps) {
+export function CommentSection({ comments, predictionId, onCommentAdded }: CommentSectionProps) {
   const t = useTranslation();
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
   const [commentLikes, setCommentLikes] = useState<Record<string, number>>({});
@@ -102,9 +103,9 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
   };
 
   const handleAddComment = async () => {
-    if (!questionId) {
+    if (!predictionId) {
       toast.error(t('errors.addCommentError'), {
-        description: t('errors.questionIdNotFound'),
+        description: t('errors.predictionIdNotFound'),
         duration: 3000,
       });
       return;
@@ -122,7 +123,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
 
     try {
       const newComment = await commentService.addComment({
-        question_id: questionId,
+        prediction_id: predictionId,
         text: commentText,
         file: selectedFile || undefined,
         parent_id: replyingTo || undefined,
@@ -130,7 +131,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
 
       // Log activity
       await activityService.logActivity('comment_add', {
-        question_id: questionId,
+        prediction_id: predictionId,
         comment_id: newComment.id,
         parent_id: replyingTo,
       });
@@ -328,14 +329,14 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
       </div>
 
       {/* Always visible comment box at bottom for new comments */}
-      {questionId && (
+      {predictionId && (
         <div className="mb-4" data-main-comment-box>
           {renderCommentBox()}
         </div>
       )}
       
       {allComments.map((comment, index) => {
-        const commentId = comment.id ?? `${comment.user_id}_${comment.question_id}_${index}`;
+        const commentId = comment.id ?? `${comment.user_id}_${comment.prediction_id}_${index}`;
         const isLiked = likedComments.has(String(commentId));
         return (
           <div key={commentId} className="space-y-3">
@@ -376,7 +377,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
                 </span>
               </button>
               
-              {comment.isRoot() && questionId && (
+              {comment.isRoot() && predictionId && (
                 <button
                   data-reply-button
                   onClick={() => handleReplyClick(String(commentId), comment.id || 0)}
@@ -401,7 +402,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
             </div>
 
             {/* Reply Comment Box - appears under the comment being replied to */}
-            {replyingToCommentId === String(commentId) && questionId && (
+            {replyingToCommentId === String(commentId) && predictionId && (
               <div ref={replyBoxRef} className="pr-8 mt-2">
                 {renderCommentBox(String(commentId))}
               </div>
@@ -411,7 +412,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
             {comment.childrenCount > 0 && expandedReplies.has(String(commentId)) && comment.children && comment.children.length > 0 && (
               <div className="pr-8 mt-3 space-y-3 border-r-2 border-gray-200">
                 {comment.children.map((child, childIndex) => {
-                  const childId = child.id ?? `${child.user_id}_${child.question_id}_${index}_${childIndex}`;
+                  const childId = child.id ?? `${child.user_id}_${child.prediction_id}_${index}_${childIndex}`;
                   const isChildLiked = likedComments.has(String(childId));
                   return (
                     <div key={childId} className="space-y-2">
@@ -443,7 +444,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
                             {formatCount(getLikeCount(childId, child.likesCount))}
                           </span>
                         </button>
-                        {questionId && (
+                        {predictionId && (
                           <button
                             data-reply-button
                             onClick={() => handleReplyClick(String(childId), child.id || 0)}
@@ -459,7 +460,7 @@ export function CommentSection({ comments, questionId, onCommentAdded }: Comment
                       </div>
                       
                       {/* Reply box for nested comments */}
-                      {replyingToCommentId === String(childId) && questionId && (
+                      {replyingToCommentId === String(childId) && predictionId && (
                         <div ref={replyBoxRef} className="pr-4 mt-2">
                           {renderCommentBox(String(childId))}
                         </div>

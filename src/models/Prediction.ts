@@ -12,12 +12,12 @@ export class Prediction {
     resolveAt: string | null;
     timePast: string;
     tags: Array<{ id: number; title: string; color: string }>;
-    options: Array<{ id: number; title: string; question_id: number; is_true: number; userPredictionsCount: number }>;
+    options: Array<{ id: number; title: string; prediction_id: number; is_true: number; userPredictionsCount: number }>;
     comments: Comment[];
     user: { username: string; mobile: string } | null;
     commentsCount: number;
     userPredictionsCount: number;
-    questionForwardCount: number;
+    predictionForwardCount: number;
     likesCount: number;
     isLiked: boolean;
 
@@ -38,12 +38,12 @@ export class Prediction {
         this.resolveAt = data.resolve_at ?? null;
         this.timePast = data.time_past || '';
         this.tags = data.tags ?? [];
-        this.options = data.questionOptions ?? [];
+        this.options = data.predictionOptions ?? [];
         this.comments = (data.comments ?? []).map((c: any) => new Comment(c));
         this.user = data.user ?? null;
         this.commentsCount = data.commentsCount ?? 0;
         this.userPredictionsCount = data.userPredictionsCount ?? 0;
-        this.questionForwardCount = data.questionForwardCount ?? 0;
+        this.predictionForwardCount = data.predictionForwardCount ?? 0;
         this.likesCount = data.likesCount ?? data.likes_count ?? 0;
         this.isLiked = data.isLiked ?? data.is_liked ?? false;
 

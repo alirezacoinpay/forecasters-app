@@ -59,7 +59,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
 
       // Log activity
       await activityService.logActivity('prediction_like', {
-        question_id: prediction.id,
+        prediction_id: prediction.id,
         liked: response.liked,
       });
     } catch (error: any) {
@@ -114,7 +114,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
         </div>
       </div>
 
-      {/* Question */}
+      {/* Prediction */}
       <div className="space-y-2">
         <p className="text-sm font-semibold leading-relaxed">{prediction.title}</p>
       </div>
@@ -168,7 +168,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
             setShowShareBottomSheet(true);
           }}
         >
-          <span className="text-xs">{formatCount(prediction.questionForwardCount)}</span>
+          <span className="text-xs">{formatCount(prediction.predictionForwardCount)}</span>
           <ForwardCustomIcon className="w-4 h-4"/>
         </Button>
         <Button

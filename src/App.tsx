@@ -1,7 +1,7 @@
 import { useState, useMemo, lazy, Suspense, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
-import { FeedView } from './components/questions/FeedView.tsx';
+import { FeedView } from './components/predictions/FeedView.tsx';
 import { PredictionCardSkeleton } from './components/PredictionCardSkeleton';
 import {Prediction} from "./models/Prediction.ts";
 import { useScrollVisibility } from './hooks/useScrollVisibility';
@@ -44,7 +44,7 @@ export default function App() {
   const initialDeepLinkPredictionId = useRef<number | undefined>(parseInitialUrl());
   
   const [selectedPrediction, setSelectedPrediction] = useState<Prediction | null>(null);
-  const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [showAddPrediction, setShowAddPrediction] = useState(false);
   const [showSearchPage, setShowSearchPage] = useState(false);
   const [searchPageTag, setSearchPageTag] = useState<{ id: number; title: string; color: string } | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<'feed' | 'profile'>('feed');
@@ -86,14 +86,14 @@ export default function App() {
     {
       key: 'n',
       ctrl: true,
-      handler: () => setShowAddQuestion(true),
-      description: 'سوال جدید',
+      handler: () => setShowAddPrediction(true),
+      description: 'پیش‌بینی جدید',
     },
     {
       key: 'Escape',
       handler: () => {
         if (selectedPrediction) setSelectedPrediction(null);
-        if (showAddQuestion) setShowAddQuestion(false);
+        if (showAddPrediction) setShowAddPrediction(false);
       },
       description: 'بستن',
     },
@@ -160,8 +160,8 @@ export default function App() {
     setHeaderVisibleFromSwipe(true);
   };
 
-  // Show create prediction page if showAddQuestion is true
-  if (showAddQuestion) {
+  // Show create prediction page if showAddPrediction is true
+  if (showAddPrediction) {
     return (
       <Suspense fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
@@ -169,7 +169,7 @@ export default function App() {
         </div>
       }>
         <CreatePredictionPage
-          onClose={() => setShowAddQuestion(false)}
+          onClose={() => setShowAddPrediction(false)}
           selectedTopicId={selectedTopicId}
           topics={topics}
           onTopicChange={setSelectedTopicId}
@@ -269,7 +269,7 @@ export default function App() {
         isVisible={isNavVisible}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onAddQuestion={() => setShowAddQuestion(true)}
+        onAddPrediction={() => setShowAddPrediction(true)}
       />
 
       {selectedPrediction && (

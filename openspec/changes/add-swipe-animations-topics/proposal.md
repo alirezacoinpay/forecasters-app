@@ -20,7 +20,7 @@ The current swipe functionality works but lacks visual feedback. Users need:
 - **Affected code**:
   - `src/hooks/useSwipe.ts` - Enhanced with animation support
   - `src/components/Header.tsx` - Add swipe animations
-  - `src/components/questions/FeedView.tsx` - Add swipe animations
+  - `src/components/predictions/FeedView.tsx` - Add swipe animations
   - `src/services/` - New topic service
   - `src/repositories/` - New topic repository
   - `src/hooks/` - New topic hooks and cache

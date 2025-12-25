@@ -64,7 +64,7 @@ export function ShareBottomSheet({ predictionId, onClose }: ShareBottomSheetProp
 
         try {
             await shareService.sendSms({
-                question_id: predictionId,
+                prediction_id: predictionId,
                 mobile: phoneNumber.trim(),
             });
             

@@ -14,7 +14,7 @@
 - [x] 2.4 Add optimistic updates for predictions and comments
 - [x] 2.5 Improve error messages with actionable feedback
 - [x] 2.6 Add confirmation dialogs for destructive actions
-- [x] 2.7 Improve form validation and error display in AddQuestionModal
+- [x] 2.7 Improve form validation and error display in CreatePredictionPage
 
 ## 3. Logic Optimization
 - [x] 3.1 Improve error handling in API services
@@ -29,7 +29,7 @@
 - [x] 4.1 Refactor PredictionDetail sheet for better performance
 - [x] 4.2 Improve CommentSection with better nested comment handling
 - [x] 4.3 Add search functionality to Header component
-- [x] 4.4 Improve AddQuestionModal form validation
+- [x] 4.4 Improve CreatePredictionPage form validation
 - [x] 4.5 Add keyboard shortcuts and navigation
 - [x] 4.6 Improve ProfileView with real data integration
 

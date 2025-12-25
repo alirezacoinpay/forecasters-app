@@ -41,7 +41,7 @@ The system SHALL allow users to like and unlike predictions through API calls.
 - **WHEN** user clicks the like button on an unliked prediction
 - **THEN** the system immediately updates the UI to show liked state (optimistic update)
 - **AND** the system increments the like count by 1
-- **AND** the system sends POST request to `/questions/:id/like` endpoint
+- **AND** the system sends POST request to `/predictions/:id/like` endpoint
 - **AND** if the API call succeeds, the system confirms the liked state
 - **AND** if the API call fails, the system reverts to unliked state and shows error message
 
@@ -49,7 +49,7 @@ The system SHALL allow users to like and unlike predictions through API calls.
 - **WHEN** user clicks the like button on a liked prediction
 - **THEN** the system immediately updates the UI to show unliked state (optimistic update)
 - **AND** the system decrements the like count by 1
-- **AND** the system sends POST request to `/questions/:id/like` endpoint
+- **AND** the system sends POST request to `/predictions/:id/like` endpoint
 - **AND** if the API call succeeds, the system confirms the unliked state
 - **AND** if the API call fails, the system reverts to liked state and shows error message
 
@@ -78,8 +78,8 @@ The system SHALL integrate with the backend API for like/unlike operations.
 
 #### Scenario: Like API call
 - **WHEN** user likes a prediction
-- **THEN** the system sends POST request to `/questions/:id/like`
-- **AND** the request includes the question ID in the URL
+- **THEN** the system sends POST request to `/predictions/:id/like`
+- **AND** the request includes the prediction ID in the URL
 - **AND** the system receives response with `liked: boolean` and `likesCount: number`
 - **AND** the system updates the prediction state with the response data
 
@@ -95,12 +95,12 @@ The system SHALL log like/unlike activities for analytics.
 #### Scenario: Log like activity
 - **WHEN** user successfully likes a prediction
 - **THEN** the system logs activity with action `prediction_like`
-- **AND** the activity includes metadata: `question_id` and `liked: true`
+- **AND** the activity includes metadata: `prediction_id` and `liked: true`
 
 #### Scenario: Log unlike activity
 - **WHEN** user successfully unlikes a prediction
 - **THEN** the system logs activity with action `prediction_like`
-- **AND** the activity includes metadata: `question_id` and `liked: false`
+- **AND** the activity includes metadata: `prediction_id` and `liked: false`
 
 ### Requirement: Initial Like State
 The system SHALL correctly initialize the like state based on backend data.

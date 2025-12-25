@@ -1,7 +1,7 @@
 ## 1. API Integration
 - [x] 1.1 Add `LikePredictionResponse` type to `src/types/api.ts`
-- [x] 1.2 Add `likePrediction(questionId)` method to `src/services/predictionService.service.ts`
-- [x] 1.3 Document required backend API endpoint in comments (POST `/questions/:id/like`)
+- [x] 1.2 Add `likePrediction(predictionId)` method to `src/services/predictionService.service.ts`
+- [x] 1.3 Document required backend API endpoint in comments (POST `/predictions/:id/like`)
 - [x] 1.4 Add activity logging for prediction likes in `activityService.service.ts`
 
 ## 2. Prediction Model Updates

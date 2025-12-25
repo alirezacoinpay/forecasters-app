@@ -2,7 +2,7 @@
 - [x] 1.1 Add `predictionId` parameter to `PredictionListParams` interface in `src/types/api.ts`
 - [x] 1.2 Update `usePredictionFeed` hook to accept `predictionId` parameter
 - [x] 1.3 Pass `predictionId` to API call in `predictionRepository.fetch()`
-- [x] 1.4 Document backend API requirement: `question-feed` endpoint should accept `prediction_id` parameter and return predictions with the specified prediction at the top
+- [x] 1.4 Document backend API requirement: `prediction-feed` endpoint should accept `prediction_id` parameter and return predictions with the specified prediction at the top
 
 ## 2. URL Parsing
 - [x] 2.1 Add URL parsing logic in `App.tsx` to extract prediction ID from query string

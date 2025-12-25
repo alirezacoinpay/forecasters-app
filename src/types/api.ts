@@ -174,13 +174,13 @@ export interface Prediction {
   time_past: string;
   userPredictionsCount: number;
   commentsCount: number;
-  questionForwardCount: number;
+  predictionForwardCount: number;
   user: {
     username: string;
     mobile: string;
   } | null;
   tags: Tag[];
-  questionOptions: PredictionOption[];
+  predictionOptions: PredictionOption[];
   comments?: Comment[];
 }
 
@@ -195,12 +195,6 @@ export interface PredictionListParams {
 }
 
 export interface CreatePredictionData {
-    name?: string;
-    email?: string;
-    role?: string;
-}
-
-export interface CreateQuestionData {
     title: string;
     text?: string;
     topic_id: number;
@@ -219,7 +213,7 @@ export interface UpdatePredictionData {
 export interface PredictionOption {
     id: number;
     title: string;
-    question_id: number;
+    prediction_id: number;
     is_true: number;
     userPredictionsCount: number;
 }
@@ -234,7 +228,7 @@ export interface Comment {
     id?: number;
     user_id: number;
     parent_id: number | null;
-    question_id: number;
+    prediction_id: number;
     text: string;
     file: string | null;
     time_past: string;
@@ -248,7 +242,7 @@ export interface Comment {
 }
 
 export interface AddCommentData {
-    question_id: number;
+    prediction_id: number;
     text: string;
     file?: File;
     parent_id?: number | null;
@@ -276,7 +270,7 @@ export interface Topic {
 }
 
 export interface SubmitPredictionData {
-    question_option_id: number;
+    prediction_option_id: number;
     comment?: {
         text?: string;
         file?: File;

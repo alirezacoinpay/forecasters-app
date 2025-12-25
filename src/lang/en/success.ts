@@ -3,7 +3,7 @@ export const en = {
     predictionSubmitted: 'Prediction submitted successfully',
     commentSubmitted: 'Comment submitted successfully',
     profileUpdated: 'Profile updated successfully',
-    questionPublished: 'Question published successfully',
+    predictionPublished: 'Prediction published successfully',
     linkCopied: 'Link copied!',
     sentToPhone: 'Sent to number: {phoneNumber}',
   },

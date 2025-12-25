@@ -4,7 +4,6 @@ import {
     PredictionListParams,
     UpdatePredictionData,
     CreatePredictionData,
-    CreateQuestionData,
     PaginatedResponse,
     ApiResponse,
     SubmitPredictionData,
@@ -25,21 +24,12 @@ export const predictionService = {
 
     // Get prediction by ID
     async getPredictionById(id: number | string): Promise<Prediction> {
-        const response = await apiClient.get<ApiResponse<Prediction>>(`/questions/${id}`);
+        const response = await apiClient.get<ApiResponse<Prediction>>(`/predictions/${id}`);
         return response.data;
     },
 
     // Create prediction
-    async createPrediction(id: string, userData: CreatePredictionData): Promise<Prediction> {
-        const response = await apiClient.post<{ data: Prediction }>(
-            `/questions/${id}`,
-            userData
-        );
-        return response.data.data;
-    },
-
-    // Create question/prediction
-    async createQuestion(data: CreateQuestionData): Promise<ApiResponse<Prediction>> {
+    async createPrediction(data: CreatePredictionData): Promise<ApiResponse<Prediction>> {
         const formData = new FormData();
         formData.append('title', data.title);
         if (data.text) {
@@ -66,7 +56,7 @@ export const predictionService = {
         }
 
         const response = await apiClient.upload<ApiResponse<Prediction>>(
-            '/questions',
+            '/predictions',
             formData
         );
 
@@ -76,19 +66,19 @@ export const predictionService = {
     // Update prediction
     async updatePrediction(id: string, userData: UpdatePredictionData): Promise<Prediction> {
         const response = await apiClient.put<{ data: Prediction }>(
-            `/questions/${id}`,
+            `/predictions/${id}`,
             userData
         );
         return response.data.data;
     },
 
     /**
-     * Submit a prediction (select an option for a question)
+     * Submit a prediction (select an option for a prediction)
      *
      * This method sends a FormData request with the selected option and optional comment.
      * The comment can include text and/or a file attachment.
      *
-     * @param data - Prediction data including question_option_id and optional comment with text/file
+     * @param data - Prediction data including prediction_option_id and optional comment with text/file
      * @returns Promise resolving to API response containing the created prediction
      * @throws {ApiError} If the request fails (validation error, network error, etc.)
      *
@@ -96,12 +86,12 @@ export const predictionService = {
      * ```typescript
      * // Submit prediction without comment
      * const prediction = await predictionService.submitPrediction({
-     *   question_option_id: 7,
+     *   prediction_option_id: 7,
      * });
      *
      * // Submit prediction with text comment
      * const predictionWithComment = await predictionService.submitPrediction({
-     *   question_option_id: 7,
+     *   prediction_option_id: 7,
      *   comment: {
      *     text: 'I think this will happen because...',
      *   },
@@ -109,7 +99,7 @@ export const predictionService = {
      *
      * // Submit prediction with file
      * const predictionWithFile = await predictionService.submitPrediction({
-     *   question_option_id: 7,
+     *   prediction_option_id: 7,
      *   comment: {
      *     text: 'See attached image',
      *     file: fileObject,
@@ -119,7 +109,7 @@ export const predictionService = {
      */
     async submitPrediction(data: SubmitPredictionData): Promise<ApiResponse<Prediction>> {
         const formData = new FormData();
-        formData.append('question_option_id', String(data.question_option_id));
+        formData.append('prediction_option_id', String(data.prediction_option_id));
 
         if (data.comment) {
             if (data.comment.text) {
@@ -139,16 +129,16 @@ export const predictionService = {
     },
 
     /**
-     * Like or unlike a prediction (question)
+     * Like or unlike a prediction
      *
      * This method toggles the like status of a prediction. If the prediction is currently
      * unliked, it will be liked. If it's currently liked, it will be unliked.
      *
      * Backend endpoint: POST `/prediction-likes/:id/toggle`
      *
-     * @param questionId - The ID of the question/prediction to like/unlike
+     * @param predictionId - The ID of the prediction to like/unlike
      * @returns Promise resolving to response with like status and updated like count
-     * @throws {ApiError} If the request fails (network error, question not found, etc.)
+     * @throws {ApiError} If the request fails (network error, prediction not found, etc.)
      *
      * @example
      * ```typescript
@@ -157,9 +147,9 @@ export const predictionService = {
      * console.log(response.likesCount); // updated like count
      * ```
      */
-    async likePrediction(questionId: number | string): Promise<LikePredictionResponse> {
+    async likePrediction(predictionId: number | string): Promise<LikePredictionResponse> {
         const response = await apiClient.post<ApiResponse<LikePredictionResponse>>(
-            `/prediction-likes/${questionId}/toggle`
+            `/prediction-likes/${predictionId}/toggle`
         );
         
         return response.data;

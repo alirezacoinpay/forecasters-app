@@ -2,7 +2,7 @@ export class Comment {
     id?: number;
     file: string | null;
     parent_id: number | null;
-    question_id: number;
+    prediction_id: number;
     text: string;
     time_past: string;
     user_id: number;
@@ -16,7 +16,7 @@ export class Comment {
         this.id = data.id;
         this.file = data.file ?? null;
         this.parent_id = data.parent_id ?? null;
-        this.question_id = data.question_id;
+        this.prediction_id = data.prediction_id ?? data.question_id;
         this.text = data.text;
         this.time_past = data.time_past;
         this.user_id = data.user_id;

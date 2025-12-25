@@ -25,12 +25,12 @@ The system SHALL parse prediction ID from URL query parameters on app initializa
 - **AND** the system shows an error message (optional)
 
 ### Requirement: API Integration with Prediction ID
-The system SHALL send the prediction ID to the question-feed API endpoint when a deep link is present.
+The system SHALL send the prediction ID to the prediction-feed API endpoint when a deep link is present.
 
 #### Scenario: Send prediction ID to API
 - **WHEN** a prediction ID is extracted from URL
 - **THEN** the system includes `prediction_id` (or `predictionId`) in the API request parameters
-- **AND** the API request is sent to `/question-feed` endpoint
+- **AND** the API request is sent to `/prediction-feed` endpoint
 - **AND** the prediction ID is included in the query parameters
 
 #### Scenario: API response with prediction at top

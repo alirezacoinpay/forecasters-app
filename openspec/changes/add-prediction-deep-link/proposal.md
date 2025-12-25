@@ -20,7 +20,7 @@ Users need to be able to share predictions via URL links. When someone clicks a 
   - New capability: `prediction-deep-linking` (or modify existing `navigation` or `data-fetching`)
 - **Affected code**:
   - `src/App.tsx` - Add URL parsing and prediction ID state management
-  - `src/components/questions/FeedView.tsx` - Handle deep link state and topic updates
+  - `src/components/predictions/FeedView.tsx` - Handle deep link state and topic updates
   - `src/hooks/predictions/usePredictionFeed.ts.tsx` - Add predictionId parameter support
   - `src/types/api.ts` - Add predictionId to PredictionListParams
   - `src/components/Header.tsx` - Handle topic updates from deep link

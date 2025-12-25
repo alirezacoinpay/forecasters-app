@@ -14,7 +14,7 @@ export class PredictionRepository {
      *     predictions with the specified prediction at the top of the list
      * 
      * Backend API requirement:
-     * The `/question-feed` endpoint should accept a `prediction_id` parameter.
+     * The `/prediction-feed` endpoint should accept a `prediction_id` parameter.
      * When this parameter is provided, the response should include predictions
      * with the specified prediction at the top of the list, followed by other
      * predictions in the feed.

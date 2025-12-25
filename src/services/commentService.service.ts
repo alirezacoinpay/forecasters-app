@@ -15,7 +15,7 @@ export const commentService = {
     /**
      * Add a new comment or reply to a prediction
      * 
-     * @param data - Comment data including question_id, text, optional file, and optional parent_id for replies
+     * @param data - Comment data including prediction_id, text, optional file, and optional parent_id for replies
      * @returns Promise resolving to the created comment
      * @throws {ApiError} If the request fails (network error, validation error, etc.)
      * 
@@ -23,20 +23,20 @@ export const commentService = {
      * ```typescript
      * // Add a root comment
      * const comment = await commentService.addComment({
-     *   question_id: 5,
+     *   prediction_id: 5,
      *   text: 'This is a comment',
      * });
      * 
      * // Add a reply
      * const reply = await commentService.addComment({
-     *   question_id: 5,
+     *   prediction_id: 5,
      *   text: 'This is a reply',
      *   parent_id: 123,
      * });
      * 
      * // Add comment with file
      * const commentWithFile = await commentService.addComment({
-     *   question_id: 5,
+     *   prediction_id: 5,
      *   text: 'Comment with image',
      *   file: fileObject,
      * });
@@ -44,7 +44,7 @@ export const commentService = {
      */
     async addComment(data: AddCommentData): Promise<Comment> {
         const formData = new FormData();
-        formData.append('question_id', String(data.question_id));
+        formData.append('prediction_id', String(data.prediction_id));
         formData.append('text', data.text);
         
         if (data.file) {
@@ -86,11 +86,11 @@ export const commentService = {
     },
 
     /**
-     * Get comments for a specific question
+     * Get comments for a specific prediction
      * 
-     * Note: This endpoint is optional if comments are already included in the question detail response.
+     * Note: This endpoint is optional if comments are already included in the prediction detail response.
      * 
-     * @param questionId - The ID of the question
+     * @param predictionId - The ID of the prediction
      * @param params - Optional pagination parameters
      * @returns Promise resolving to list of comments with pagination metadata
      * @throws {ApiError} If the request fails
@@ -105,11 +105,11 @@ export const commentService = {
      * ```
      */
     async getComments(
-        questionId: number | string,
+        predictionId: number | string,
         params?: { page?: number; per_page?: number }
     ): Promise<ApiResponse<Comment[]>> {
         const response = await apiClient.get<ApiResponse<Comment[]>>(
-            `/questions/${questionId}/comments`,
+            `/predictions/${predictionId}/comments`,
             { params }
         );
         

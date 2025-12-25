@@ -18,7 +18,7 @@ The application currently has mock implementations and TODOs for critical user a
   - `src/services/userService.service.ts`
   - `src/components/PredictionDetail.tsx`
   - `src/components/CommentSection.tsx`
-  - `src/components/AddQuestionModal.tsx`
+  - `src/components/CreatePredictionPage.tsx`
   - New service: `src/services/commentService.service.ts`
   - New service: `src/services/activityService.service.ts`
 

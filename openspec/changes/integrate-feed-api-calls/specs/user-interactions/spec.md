@@ -28,7 +28,7 @@ The system SHALL allow users to add new comments to predictions through the back
 #### Scenario: Add comment successfully
 - **WHEN** user types a comment and submits it
 - **THEN** the system shows a loading state during submission
-- **AND** the system sends POST request to `/comments` with `question_id`, `text`, and optional `file`
+- **AND** the system sends POST request to `/comments` with `prediction_id`, `text`, and optional `file`
 - **AND** on success, the new comment is added to the comment list
 - **AND** the comment input is cleared
 - **AND** the comment count is updated
@@ -51,7 +51,7 @@ The system SHALL allow users to reply to existing comments through the backend A
 
 #### Scenario: Reply to comment successfully
 - **WHEN** user clicks reply on a comment and submits a reply
-- **THEN** the system sends POST request to `/comments` with `question_id`, `text`, `parent_id`, and optional `file`
+- **THEN** the system sends POST request to `/comments` with `prediction_id`, `text`, `parent_id`, and optional `file`
 - **AND** on success, the reply is added as a child comment
 - **AND** the reply count is updated
 - **AND** the reply input is cleared and hidden

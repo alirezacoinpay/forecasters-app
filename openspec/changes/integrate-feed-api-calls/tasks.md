@@ -9,9 +9,9 @@
 
 ### 1.2 Comment Service Implementation
 - [x] 1.2.1 Create `src/services/commentService.service.ts` with methods:
-  - `addComment(questionId, text, file?, parentId?)` - POST `/comments`
+  - `addComment(predictionId, text, file?, parentId?)` - POST `/comments`
   - `likeComment(commentId)` - POST `/comments/:commentId/like` or PUT
-  - `getComments(questionId)` - GET `/questions/:questionId/comments` (if needed)
+  - `getComments(predictionId)` - GET `/predictions/:predictionId/comments` (if needed)
 - [x] 1.2.2 Add TypeScript types for comment requests/responses in `src/types/api.ts`
 
 ### 1.3 Comment Interactions

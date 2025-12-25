@@ -4,10 +4,10 @@ interface BottomNavProps {
   isVisible: boolean;
   activeTab: 'feed' | 'profile';
   onTabChange: (tab: 'feed' | 'profile') => void;
-  onAddQuestion: () => void;
+  onAddPrediction: () => void;
 }
 
-export function BottomNav({ isVisible, activeTab, onTabChange, onAddQuestion }: BottomNavProps) {
+export function BottomNav({ isVisible, activeTab, onTabChange, onAddPrediction }: BottomNavProps) {
   return (
     <nav
       className={`fixed bottom-0 z-50 bg-background border-t border-border transition-all duration-300 ease-in-out ${
@@ -34,9 +34,9 @@ export function BottomNav({ isVisible, activeTab, onTabChange, onAddQuestion }: 
           <User className="w-6 h-6" />
         </button>
 
-        {/* Add Question Button */}
+        {/* Add Prediction Button */}
         <button
-          onClick={onAddQuestion}
+          onClick={onAddPrediction}
           className={`flex flex-col items-center gap-1 px-6 py-2 rounded-lg transition-colors ${
             'text-[#FF6B35]'
           }`}

@@ -18,7 +18,7 @@ The application needs to integrate with the backend API for all user interaction
 ## Decisions
 
 ### Decision: Use FormData for Prediction Submission
-**Rationale**: The Postman collection shows POST `/predictions` uses formdata with `question_option_id`, `comment[text]`, and `comment[file]`. This matches Laravel's form data handling.
+**Rationale**: The Postman collection shows POST `/predictions` uses formdata with `prediction_option_id`, `comment[text]`, and `comment[file]`. This matches Laravel's form data handling.
 
 **Alternatives Considered**:
 - JSON with base64 file encoding - Rejected: More complex, larger payload
@@ -45,7 +45,7 @@ The application needs to integrate with the backend API for all user interaction
 **Rationale**: Postman collection doesn't include comment endpoints, but they're needed for functionality.
 
 **Backend Requirements**:
-1. POST `/comments` - Body: `{ question_id, text, file?, parent_id? }`
+1. POST `/comments` - Body: `{ prediction_id, text, file?, parent_id? }`
 2. POST `/comments/:commentId/like` or PUT `/comments/:commentId/like` - Toggle like
 
 **Alternative**: Use existing endpoints if they exist but aren't documented in Postman.
@@ -53,8 +53,8 @@ The application needs to integrate with the backend API for all user interaction
 ## API Endpoint Mapping
 
 ### Existing Endpoints (from Postman)
-- ✅ GET `/question-feed` - Already implemented
-- ✅ GET `/questions/:questionId` - Already implemented
+- ✅ GET `/prediction-feed` - Already implemented
+- ✅ GET `/predictions/:predictionId` - Already implemented
 - ✅ POST `/predictions` - Needs implementation
 - ✅ GET `/me` - Needs implementation
 - ✅ PUT `/edit-profile` - Needs implementation
@@ -65,7 +65,7 @@ The application needs to integrate with the backend API for all user interaction
 ### Missing Endpoints (Need Backend Implementation)
 - ❌ POST `/comments` - Add comment
 - ❌ POST `/comments/:commentId/like` - Like comment
-- ❌ GET `/questions/:questionId/comments` - Get comments (if not included in question detail)
+- ❌ GET `/predictions/:predictionId/comments` - Get comments (if not included in prediction detail)
 
 ## Data Flow
 
@@ -73,7 +73,7 @@ The application needs to integrate with the backend API for all user interaction
 ```
 User selects option → Click submit → 
   → Show loading toast
-  → Create FormData with question_option_id, comment[text], comment[file]
+  → Create FormData with prediction_option_id, comment[text], comment[file]
   → POST /predictions
   → On success: Close modal, refresh feed, show success toast
   → On error: Show error toast, keep modal open
@@ -92,7 +92,7 @@ User clicks like →
 ```
 User types comment → Click submit →
   → Show loading state
-  → POST /comments with { question_id, text, file?, parent_id? }
+  → POST /comments with { prediction_id, text, file?, parent_id? }
   → On success: Add comment to list, clear input, show success
   → On error: Show error toast, keep input
 ```

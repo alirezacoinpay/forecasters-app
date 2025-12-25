@@ -11,7 +11,7 @@ This document outlines the backend API endpoints that are missing from the Postm
 **Request Body** (FormData or JSON):
 ```json
 {
-  "question_id": 5,
+  "prediction_id": 5,
   "text": "This is a comment",
   "file": <File> (optional),
   "parent_id": null (optional, for replies)
@@ -25,7 +25,7 @@ This document outlines the backend API endpoints that are missing from the Postm
   "data": {
     "id": 123,
     "user_id": 1,
-    "question_id": 5,
+    "prediction_id": 5,
     "parent_id": null,
     "text": "This is a comment",
     "file": "path/to/file.jpg",
@@ -75,7 +75,7 @@ This document outlines the backend API endpoints that are missing from the Postm
 ---
 
 ### 3. Get Comments (Optional Enhancement)
-**Endpoint**: `GET /questions/:questionId/comments`
+**Endpoint**: `GET /predictions/:predictionId/comments`
 
 **Query Parameters**:
 - `page` (optional): Page number for pagination
@@ -90,7 +90,7 @@ This document outlines the backend API endpoints that are missing from the Postm
       {
         "id": 123,
         "user_id": 1,
-        "question_id": 5,
+        "prediction_id": 5,
         "parent_id": null,
         "text": "Comment text",
         "file": null,
@@ -122,7 +122,7 @@ This document outlines the backend API endpoints that are missing from the Postm
 ```
 
 **Notes**:
-- This endpoint is optional if comments are already included in the question detail response
+- This endpoint is optional if comments are already included in the prediction detail response
 - Should support nested replies (children)
 - Should include pagination metadata
 
@@ -144,8 +144,8 @@ This document outlines the backend API endpoints that are missing from the Postm
   "success": true,
   "data": {
     "id": 123,
-    "question_id": 5,
-    "question_option_id": 7,
+    "prediction_id": 5,
+    "prediction_option_id": 7,
     "comment": {
       "id": 456,
       "text": "Comment text",
@@ -199,7 +199,7 @@ All endpoints should return errors in this format:
    - Test adding comment with and without file
    - Test replying to comments (nested structure)
    - Test like/unlike toggle functionality
-   - Test error cases (invalid question_id, unauthorized access)
+   - Test error cases (invalid prediction_id, unauthorized access)
 
 2. **File Upload**:
    - Test various file types (images, documents)
@@ -219,7 +219,7 @@ All endpoints should return errors in this format:
 2. ✅ POST /comments/:commentId/like - Like comment
 
 **Medium Priority** (Enhancement):
-3. GET /questions/:questionId/comments - Get comments (if not in question detail)
+3. GET /predictions/:predictionId/comments - Get comments (if not in prediction detail)
 
 **Low Priority** (Future):
 - Comment editing

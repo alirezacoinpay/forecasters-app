@@ -207,7 +207,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
       const selectedTopic = topics.find(t => t.id === currentTopicId);
       const startsAt = getStartDate(selectedDays);
       
-      await predictionService.createQuestion({
+      await predictionService.createPrediction({
         title: title.trim(),
         text: text.trim() || undefined,
         topic_id: currentTopicId,
@@ -218,7 +218,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
       });
 
       toast.dismiss(loadingToast);
-      toast.success(t('success.questionPublished'));
+      toast.success(t('success.predictionPublished'));
 
       // Reset form
       setTitle('');
@@ -235,7 +235,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
       }, 500);
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(t('errors.publishQuestionError'), {
+      toast.error(t('errors.publishPredictionError'), {
         description: error instanceof Error ? error.message : t('errors.tryAgain'),
       });
     } finally {

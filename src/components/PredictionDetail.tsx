@@ -89,7 +89,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
 
             // Log activity
             await activityService.logActivity('prediction_like', {
-                question_id: prediction.id,
+                prediction_id: prediction.id,
                 liked: response.liked,
             });
         } catch (error: any) {
@@ -120,13 +120,13 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
 
         try {
             await predictionService.submitPrediction({
-                question_option_id: Number(selectedOption),
+                prediction_option_id: Number(selectedOption),
             });
 
             // Log activity
             await activityService.logActivity('prediction_submit', {
-                question_id: prediction.id,
-                question_option_id: Number(selectedOption),
+                prediction_id: prediction.id,
+                prediction_option_id: Number(selectedOption),
             });
 
             toast.dismiss(loadingToast);
@@ -314,7 +314,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                         {prediction.commentsCount > 0 && prediction.comments && prediction.comments.length > 0 && (
                             <CommentSection 
                                 comments={prediction.comments} 
-                                questionId={prediction.id}
+                                predictionId={prediction.id}
                                 onCommentAdded={() => {
                                     // Refresh prediction data if needed
                                     if (onRefresh) {

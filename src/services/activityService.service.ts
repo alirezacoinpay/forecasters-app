@@ -28,7 +28,7 @@ export const activityService = {
      * Failures are silently ignored to prevent blocking user actions.
      * 
      * @param action - The action name (e.g., 'feed_view', 'prediction_submit', 'comment_like')
-     * @param meta - Optional metadata about the activity (e.g., { page: 'home', question_id: 5 })
+     * @param meta - Optional metadata about the activity (e.g., { page: 'home', prediction_id: 5 })
      * @returns Promise that resolves when logging is complete (or fails silently)
      * 
      * @example
@@ -38,8 +38,8 @@ export const activityService = {
      * 
      * // Log prediction submission
      * await activityService.logActivity('prediction_submit', {
-     *   question_id: 5,
-     *   question_option_id: 7,
+     *   prediction_id: 5,
+     *   prediction_option_id: 7,
      * });
      * 
      * // Log comment like

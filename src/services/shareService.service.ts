@@ -2,7 +2,7 @@ import { apiClient } from '../lib/axios';
 import { ApiResponse } from '../types/api';
 
 interface SendSmsData {
-    question_id: number;
+    prediction_id: number;
     mobile: string;
 }
 
@@ -10,7 +10,7 @@ export const shareService = {
     /**
      * Send prediction link via SMS to a mobile number
      * 
-     * @param data - Data containing question_id and mobile number
+     * @param data - Data containing prediction_id and mobile number
      * @returns Promise resolving to API response
      * @throws {ApiError} If the request fails
      */
@@ -20,7 +20,7 @@ export const shareService = {
         const response = await apiClient.post<ApiResponse<any>>(
             '/share/sms',
             {
-                question_id: data.question_id,
+                prediction_id: data.prediction_id,
                 mobile: data.mobile,
             }
         );
