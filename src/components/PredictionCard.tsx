@@ -8,7 +8,8 @@ import {
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import {Prediction} from "../models/Prediction.ts";
-import { ShareBottomSheet } from './ShareBottomSheet';
+import { ShareContent } from './ShareContent';
+import { BottomSheet } from './ui/BottomSheet';
 import ForwardCustomIcon from "./icons/ForwardCustomIcon.tsx";
 import { PredictionsOptions } from './PredictionsOptions';
 import { formatCount } from '../utils/format';
@@ -26,7 +27,7 @@ interface PredictionCardProps {
 
 export const PredictionCard = memo(function PredictionCard({ prediction, onClick, onTagClick }: PredictionCardProps) {
   const t = useTranslation();
-  const [showShareBottomSheet, setShowShareBottomSheet] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const touchHandledRef = useRef(false);
   const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
   const [likesCount, setLikesCount] = useState(prediction.predictionLikes ?? 0);
@@ -147,7 +148,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
           onTouchStart={(e: React.TouchEvent) => {
             e.stopPropagation();
             touchHandledRef.current = true;
-            setShowShareBottomSheet(true);
+            setShowShareSheet(true);
             // Reset after a delay to allow click event to be ignored
             setTimeout(() => {
               touchHandledRef.current = false;
@@ -160,7 +161,7 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
               e.preventDefault();
               return;
             }
-            setShowShareBottomSheet(true);
+            setShowShareSheet(true);
           }}
         >
           <span className="text-xs">{formatCount(prediction.predictionForwardCount)}</span>
@@ -189,11 +190,28 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
         </Button>
       </div>
 
-      {showShareBottomSheet && (
-        <ShareBottomSheet
-          predictionId={prediction.id}
-          onClose={() => setShowShareBottomSheet(false)}
-        />
+      {showShareSheet && (
+        <BottomSheet
+          isOpen={showShareSheet}
+          onClose={() => setShowShareSheet(false)}
+          header={
+            <div className="flex items-center justify-between w-full">
+              <h3 id="share-bottom-sheet-title" className="font-semibold">{t('ui.labels.shareTitle')}</h3>
+              <div className="w-10"></div>
+            </div>
+          }
+          options={{
+            initialHeight: 30,
+            maxHeight: 50,
+            maxWidth: 'max-w-[428px]',
+            closeThreshold: 25,
+            velocityThreshold: 0.5,
+            zIndex: 100,
+          }}
+          aria-labelledby="share-bottom-sheet-title"
+        >
+          <ShareContent predictionId={prediction.id} onClose={() => setShowShareSheet(false)} />
+        </BottomSheet>
       )}
     </div>
   );
