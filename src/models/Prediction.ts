@@ -18,7 +18,7 @@ export class Prediction {
     commentsCount: number;
     userPredictionsCount: number;
     predictionForwardCount: number;
-    likesCount: number;
+    predictionLikes: number;
     isLiked: boolean;
 
     constructor(data: any) {
@@ -44,7 +44,7 @@ export class Prediction {
         this.commentsCount = data.commentsCount ?? 0;
         this.userPredictionsCount = data.userPredictionsCount ?? 0;
         this.predictionForwardCount = data.predictionForwardCount ?? 0;
-        this.likesCount = data.likesCount ?? data.likes_count ?? 0;
+        this.predictionLikes = data.predictionLikes ?? 0;
         this.isLiked = data.isLiked ?? data.is_liked ?? false;
 
      

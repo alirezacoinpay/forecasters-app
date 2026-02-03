@@ -29,14 +29,14 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
   const [showShareBottomSheet, setShowShareBottomSheet] = useState(false);
   const touchHandledRef = useRef(false);
   const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
-  const [likesCount, setLikesCount] = useState(prediction.likesCount ?? 0);
+  const [likesCount, setLikesCount] = useState(prediction.predictionLikes ?? 0);
   const [isLiking, setIsLiking] = useState(false);
 
   // Sync state when prediction prop changes
   useEffect(() => {
     setIsLiked(prediction.isLiked ?? false);
-    setLikesCount(prediction.likesCount ?? 0);
-  }, [prediction.isLiked, prediction.likesCount]);
+    setLikesCount(prediction.predictionLikes ?? 0);
+  }, [prediction.isLiked, prediction.predictionLikes]);
 
   const handleLike = async (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
@@ -47,21 +47,16 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
 
     // Optimistic update
     setIsLiked(!wasLiked);
-    setLikesCount(wasLiked ? previousCount - 1 : previousCount + 1);
+    // setLikesCount(wasLiked ? previousCount - 1 : previousCount + 1);
     setIsLiking(true);
 
     try {
       const response = await predictionService.likePrediction(prediction.id);
       
       // Update with actual response
-      setIsLiked(response.liked);
+      setIsLiked(response.is_liked);
       setLikesCount(response.likesCount);
 
-      // Log activity
-      await activityService.logActivity('prediction_like', {
-        prediction_id: prediction.id,
-        liked: response.liked,
-      });
     } catch (error: any) {
       // Revert optimistic update on error
       setIsLiked(wasLiked);

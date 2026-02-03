@@ -9,6 +9,7 @@ import { predictionService } from '../services/predictionService.service';
 import { tagService } from '../services/tagService.service';
 import { Topic, Tag } from '../types/api';
 import { useTranslation } from '../hooks/useTranslation';
+import { formatDateTime } from '../utils/format'
 
 interface CreatePredictionPageProps {
   onClose: () => void;
@@ -172,9 +173,9 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
   };
 
   const getStartDate = (days: number): string => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString();
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      return formatDateTime(date);
   };
 
   const handleSubmit = async () => {

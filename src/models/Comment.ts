@@ -6,6 +6,7 @@ export class Comment {
     text: string;
     time_past: string;
     user_id: number;
+    isLikedByMe: boolean;
     user: { username: string; mobile: string } | null;
     childrenCount: number;
     likesCount: number;
@@ -21,6 +22,7 @@ export class Comment {
         this.time_past = data.time_past;
         this.user_id = data.user_id;
         this.user = data.user ?? null;
+        this.isLikedByMe = data.isLikedByMe ?? false;
         this.children = (data.children ?? []).map((c: any) => new Comment(c));
         this.childrenCount = data.childrenCount ?? 0;
         this.likesCount = data.likesCount ?? 0;

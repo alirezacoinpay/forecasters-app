@@ -79,7 +79,7 @@ export const commentService = {
      */
     async likeComment(commentId: number | string): Promise<LikeCommentResponse> {
         const response = await apiClient.post<ApiResponse<LikeCommentResponse>>(
-            `/comments/${commentId}/like`
+            `/comment-likes/${commentId}/toggle`
         );
         
         return response.data;

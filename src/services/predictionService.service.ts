@@ -121,7 +121,7 @@ export const predictionService = {
         }
 
         const response = await apiClient.upload<ApiResponse<Prediction>>(
-            '/predictions',
+            '/user-predictions',
             formData
         );
 

@@ -254,7 +254,7 @@ export interface LikeCommentResponse {
 }
 
 export interface LikePredictionResponse {
-    liked: boolean;
+    is_liked: boolean;
     likesCount: number;
 }
 

@@ -27,14 +27,14 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
     const [isVisible, setIsVisible] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
-    const [likesCount, setLikesCount] = useState(prediction.likesCount ?? 0);
+    const [likesCount, setLikesCount] = useState(prediction.predictionLikes ?? 0);
     const [isLiking, setIsLiking] = useState(false);
 
     // Sync state when prediction prop changes
     useEffect(() => {
         setIsLiked(prediction.isLiked ?? false);
-        setLikesCount(prediction.likesCount ?? 0);
-    }, [prediction.isLiked, prediction.likesCount]);
+        setLikesCount(prediction.predictionLikes ?? 0);
+    }, [prediction.isLiked, prediction.predictionLikes]);
 
     const handleClose = () => {
         setIsVisible(false);
@@ -82,16 +82,11 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
 
         try {
             const response = await predictionService.likePrediction(prediction.id);
-            
+
             // Update with actual response
-            setIsLiked(response.liked);
+            setIsLiked(response.is_liked);
             setLikesCount(response.likesCount);
 
-            // Log activity
-            await activityService.logActivity('prediction_like', {
-                prediction_id: prediction.id,
-                liked: response.liked,
-            });
         } catch (error: any) {
             // Revert optimistic update on error
             setIsLiked(wasLiked);
@@ -123,11 +118,6 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                 prediction_option_id: Number(selectedOption),
             });
 
-            // Log activity
-            await activityService.logActivity('prediction_submit', {
-                prediction_id: prediction.id,
-                prediction_option_id: Number(selectedOption),
-            });
 
             toast.dismiss(loadingToast);
             toast.success(t('success.predictionSubmitted'), {

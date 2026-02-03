@@ -37,7 +37,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
 
   const toggleLike = async (commentId: number | string | undefined, currentLikes: number) => {
     if (!commentId) return;
-    
     const commentIdStr = String(commentId);
     const wasLiked = likedComments.has(commentIdStr);
     const currentLikeCount = commentLikes[commentIdStr] ?? currentLikes;
@@ -66,12 +65,7 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
         ...prev,
         [commentIdStr]: response.likesCount,
       }));
-      
-      // Log activity
-      await activityService.logActivity('comment_like', {
-        comment_id: commentId,
-        liked: response.liked,
-      });
+
     } catch (error: any) {
       // Revert optimistic update on error
       setLikedComments((prev) => {
@@ -129,12 +123,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
         parent_id: replyingTo || undefined,
       });
 
-      // Log activity
-      await activityService.logActivity('comment_add', {
-        prediction_id: predictionId,
-        comment_id: newComment.id,
-        parent_id: replyingTo,
-      });
 
       toast.dismiss(loadingToast);
       toast.success(t('success.commentSubmitted'), {
@@ -336,8 +324,8 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
       )}
       
       {allComments.map((comment, index) => {
-        const commentId = comment.id ?? `${comment.user_id}_${comment.prediction_id}_${index}`;
-        const isLiked = likedComments.has(String(commentId));
+        const commentId = comment.id;
+        const isLiked = comment.isLikedByMe
         return (
           <div key={commentId} className="space-y-3">
             {/* Comment Header */}
