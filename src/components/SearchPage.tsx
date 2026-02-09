@@ -12,22 +12,43 @@ import { searchService } from '../services/searchService.service';
 import { SearchHistoryItem } from '../types/api';
 import { Tag } from '../types/api';
 import { useTranslation } from '../hooks/useTranslation';
+import {PredictionCardSummary} from "./PredictionCardSummary.tsx";
+import {tagService} from "../services/tagService.service.ts";
 
 interface SearchPageProps {
-  onClose: () => void;
-  onPredictionClick: (prediction: Prediction) => void;
-  selectedTag?: Tag;
+    onClose: () => void;
+    onPredictionClick: (prediction: Prediction) => void;
+    selectedTag?: Tag;
+    onClearSelectedTag: () => void;
+    onTagSelected: (tagTitle: Tag) => void;
 }
 
-export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPageProps) {
+export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSelectedTag, onTagSelected}: SearchPageProps) {
   const t = useTranslation();
   const [searchQuery, setSearchQuery] = useState(selectedTag?.title || '');
   const [debouncedQuery, setDebouncedQuery] = useState(selectedTag?.title || '');
   const [recentSearches, setRecentSearches] = useState<SearchHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [tagQuery, setTagQuery] = useState('');
+  const [tagResults, setTagResults] = useState<Tag[]>([]);
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [loadingTags, setLoadingTags] = useState(false);
 
-  // Debounce search query
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Enter') return;
+
+        // If tag dropdown is open, do nothing
+        if (showTagDropdown) {
+            e.preventDefault();
+            return;
+        }
+
+        // Normal text search → let debounce handle it
+    };
+
+    // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -64,11 +85,13 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
     }
   }, []);
 
-  // Use prediction feed hook for search results and trending
-  const { predictions, loading, pagination, loadMore } = usePredictionFeed(
-    debouncedQuery || undefined,
-    undefined
-  );
+    const { predictions, loading, pagination, loadMore } =
+        usePredictionFeed(
+            debouncedQuery || undefined,
+            undefined,
+            undefined,
+            selectedTag?.id
+        );
 
   const hasMore = pagination.page < pagination.lastPage;
   const { isLoading: isLoadingMore, sentinelRef } = useInfiniteScroll({
@@ -77,17 +100,58 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
     enabled: !loading && predictions.length > 0 && !!debouncedQuery,
   });
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
 
-  const handleClearSearch = () => {
+        const hashIndex = value.lastIndexOf('#');
+
+        if (hashIndex !== -1) {
+            const query = value.slice(hashIndex + 1).trim();
+            setTagQuery(query);
+            setShowTagDropdown(true);
+        } else {
+            setTagQuery('');
+            setShowTagDropdown(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!showTagDropdown) return;
+
+        let cancelled = false;
+
+        const loadTags = async () => {
+            setLoadingTags(true);
+            try {
+                const tags = await tagService.searchTags(undefined, 1, 10);
+                if (!cancelled) {
+                    setTagResults(
+                        tags.filter(tag =>
+                            tag.title.toLowerCase().includes(tagQuery.toLowerCase())
+                        )
+                    );
+                }
+            } finally {
+                setLoadingTags(false);
+            }
+        };
+
+        loadTags();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [tagQuery, showTagDropdown]);
+
+
+
+    const handleClearSearch = () => {
     setSearchQuery('');
     setDebouncedQuery('');
   };
 
   const handleRecentSearchClick = (item: SearchHistoryItem) => {
-    setSearchQuery(item.query);
+    setSearchQuery(item.search_text);
   };
 
   const handleDismissRecentSearch = async (id: number, e: React.MouseEvent) => {
@@ -101,11 +165,22 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
   const handleRemoveTag = () => {
     setSearchQuery('');
     setDebouncedQuery('');
+    onClearSelectedTag();
   };
 
-  const showTrending = !debouncedQuery && !selectedTag;
+    const handleTagSelect = (tag: Tag) => {
+        onClearSelectedTag();
+        onTagSelected(tag);
+        setShowTagDropdown(false);
+        setTagQuery('');
+        setSearchQuery('');
+        setDebouncedQuery('');
+    };
+
+    const showTrending = !debouncedQuery && !selectedTag;
   const showRecentSearches = !debouncedQuery && recentSearches.length > 0 && !loadingHistory;
   const showSearchResults = !!debouncedQuery;
+
 
   return (
     <div className="min-h-screen bg-background" dir="ltr">
@@ -121,10 +196,33 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
               ref={inputRef}
               placeholder={t('ui.placeholders.search')}
               value={searchQuery}
+              onKeyDown={handleKeyDown}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 pr-10"
             />
-            {searchQuery && (
+              {showTagDropdown && (
+                  <div
+                      onBlur={() => setTimeout(() => setShowTagDropdown(false), 150)}
+                      className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border rounded-lg shadow">
+                      {loadingTags ? (
+                          <div className="p-3 text-sm text-muted-foreground">Loading tags…</div>
+                      ) : tagResults.length > 0 ? (
+                          tagResults.map(tag => (
+                              <button
+                                  key={tag.id}
+                                  onClick={() => handleTagSelect(tag)}
+                                  className="w-full px-3 py-2 text-left hover:bg-muted flex items-center gap-2"
+                              >
+                                  <span className="font-medium">#{tag.title}</span>
+                              </button>
+                          ))
+                      ) : (
+                          <div className="p-3 text-sm text-muted-foreground">No tags found</div>
+                      )}
+                  </div>
+              )}
+
+              {searchQuery && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -175,20 +273,20 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
                 className="w-full flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded transition-colors text-left"
               >
                 <div className="flex items-center gap-2">
-                  {item.type === 'tag' ? (
+                  {item.searchable_type === 'tag' ? (
                     <div className="w-5 h-5 rounded-full bg-[#FF6B35]/20 flex items-center justify-center">
                       <span className="text-[#FF6B35] text-xs font-bold">#</span>
                     </div>
                   ) : (
                     <Clock className="w-4 h-4 text-muted-foreground" />
                   )}
-                  <span className="text-sm text-foreground">{item.query}</span>
+                  <span className="text-sm text-foreground">{item.search_text}</span>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 text-muted-foreground"
-                  onClick={(e) => handleDismissRecentSearch(item.id, e)}
+                  onClick={(e: any) => handleDismissRecentSearch(item.id, e)}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -210,7 +308,7 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
             ) : predictions.length > 0 ? (
               <div className="space-y-0">
                 {predictions.map((prediction) => (
-                  <PredictionCard
+                  <PredictionCardSummary
                     key={prediction.id}
                     prediction={prediction}
                     onClick={() => onPredictionClick(prediction)}
@@ -248,7 +346,7 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag }: SearchPa
             ) : (
               <div className="space-y-0">
                 {predictions.map((prediction) => (
-                  <PredictionCard
+                  <PredictionCardSummary
                     key={prediction.id}
                     prediction={prediction}
                     onClick={() => onPredictionClick(prediction)}

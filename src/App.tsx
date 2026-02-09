@@ -8,6 +8,7 @@ import { useScrollVisibility } from './hooks/useScrollVisibility';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTopics, DEFAULT_TOPIC_ID } from './hooks/useTopics';
 import { useAutoAuth } from './hooks/useAutoAuth';
+import {Tag} from "./types/api.ts";
 
 // Code splitting: Lazy load heavy components
 const PredictionDetail = lazy(() => import('./components/PredictionDetail').then(m => ({ default: m.PredictionDetail })));
@@ -71,7 +72,11 @@ export default function App() {
   // Combine scroll visibility with swipe-triggered visibility
   const isNavVisible = isNavVisibleFromScroll || headerVisibleFromSwipe;
 
-  // Keyboard shortcuts
+    const handleSearchTagSelected = (tag: Tag) => {
+        setSearchPageTag(tag);
+    };
+
+    // Keyboard shortcuts
   useKeyboardShortcuts([
     {
       key: 'k',
@@ -192,8 +197,10 @@ export default function App() {
               setShowSearchPage(false);
               setSearchPageTag(undefined);
             }}
-            onPredictionClick={setSelectedPrediction}
+            onTagSelected={handleSearchTagSelected}
             selectedTag={searchPageTag}
+            onPredictionClick={setSelectedPrediction}
+            onClearSelectedTag={() => setSearchPageTag(undefined)}
           />
         </Suspense>
         {selectedPrediction && (

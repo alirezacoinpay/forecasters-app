@@ -23,7 +23,7 @@ export const searchService = {
         try {
             const response = await apiClient.get<SearchHistoryResponse>('/search-history');
             if (response.success && response.data) {
-                return response.data;
+                return response.data.data;
             }
             return [];
         } catch (error) {

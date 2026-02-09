@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { DEFAULT_TOPIC_ID } from "../useTopics";
 import { useTranslation } from "../useTranslation";
 
-export function usePredictionFeed(searchQuery?: string, topicId?: number, predictionId?: number) {
+export function usePredictionFeed(searchQuery?: string, topicId?: number, predictionId?: number, tagId?: number) {
     const t = useTranslation();
     const [predictions, setPredictions] = useState<Prediction[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -54,6 +54,10 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number, predic
             // 3. predictionId is NOT present (deep links don't need topic_id)
             if (topicId !== undefined && topicId !== DEFAULT_TOPIC_ID && !predictionId) {
                 params.topic_id = topicId;
+            }
+
+            if (tagId !== undefined && tagId !== DEFAULT_TOPIC_ID && !predictionId) {
+                params.tag_id = tagId;
             }
 
             const { predictions: newPredictions, meta } = await predictionRepository.fetch(params);

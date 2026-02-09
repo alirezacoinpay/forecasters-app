@@ -25,7 +25,7 @@ interface PredictionCardProps {
   onTagClick?: (tag: { id: number; title: string; color: string }) => void;
 }
 
-export const PredictionCard = memo(function PredictionCard({ prediction, onClick, onTagClick }: PredictionCardProps) {
+export const PredictionCardSummary = memo(function PredictionCard({ prediction, onClick, onTagClick }: PredictionCardProps) {
   const t = useTranslation();
   const [showShareSheet, setShowShareSheet] = useState(false);
   const touchHandledRef = useRef(false);
@@ -148,107 +148,6 @@ export const PredictionCard = memo(function PredictionCard({ prediction, onClick
         ))}
       </div>
 
-      {/* Options */}
-      <PredictionsOptions 
-        prediction={prediction}
-        showHeader={true}
-        interactive={false}
-      />
-
-      {/* Actions */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          className="rounded-full gap-2 border-gray-300 h-8"
-          onTouchStart={(e: React.TouchEvent) => {
-            e.stopPropagation();
-            e.preventDefault();
-            touchHandledRef.current = true;
-            setShowShareSheet(true);
-            // Reset after a delay to allow click event to be ignored
-            setTimeout(() => {
-              touchHandledRef.current = false;
-            }, 300);
-          }}
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation();
-            e.preventDefault();
-            // Prevent click if it was triggered by a touch event
-            if (touchHandledRef.current) {
-              return;
-            }
-            setShowShareSheet(true);
-          }}
-          onMouseDown={(e: React.MouseEvent) => {
-            e.stopPropagation();
-          }}
-        >
-          <span className="text-xs">{formatCount(prediction.predictionForwardCount)}</span>
-          <ForwardCustomIcon className="w-4 h-4"/>
-        </Button>
-        <Button
-          variant="outline"
-          className="rounded-full gap-2 border-gray-300 h-8"
-          disabled={isLiking}
-          onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
-              e.preventDefault();
-              handleLike(e);
-          }}
-          onTouchStart={(e: React.TouchEvent) => {
-              e.stopPropagation();
-              e.preventDefault();
-              touchHandledRef.current = true;
-              handleLike(e);
-          }}
-          onTouchEnd={(e: React.TouchEvent) => {
-              e.stopPropagation();
-              e.preventDefault();
-              touchHandledRef.current = true;
-          }}
-          onMouseDown={(e: React.MouseEvent) => {
-              e.stopPropagation();
-          }}
-        >
-          <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
-            {formatCount(likesCount)}
-          </span>
-          <Heart
-            className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
-          />
-        </Button>
-        <Button
-          variant="outline"
-          className="rounded-full gap-2 border-gray-300 h-8"
-        >
-          <span className="text-xs">{formatCount(prediction.commentsCount)}</span>
-          <MessageCircle className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {showShareSheet && (
-        <BottomSheet
-          isOpen={showShareSheet}
-          onClose={() => setShowShareSheet(false)}
-          header={
-            <div className="flex items-center justify-between w-full">
-              <h3 id="share-bottom-sheet-title" className="font-semibold">{t('ui.labels.shareTitle')}</h3>
-              <div className="w-10"></div>
-            </div>
-          }
-          options={{
-            initialHeight: 30,
-            maxHeight: 50,
-            maxWidth: 'max-w-[428px]',
-            closeThreshold: 25,
-            velocityThreshold: 0.5,
-            zIndex: 100,
-          }}
-          aria-labelledby="share-bottom-sheet-title"
-        >
-          <ShareContent predictionId={prediction.id} onClose={() => setShowShareSheet(false)} />
-        </BottomSheet>
-      )}
     </div>
   );
 });

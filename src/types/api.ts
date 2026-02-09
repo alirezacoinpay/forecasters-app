@@ -279,9 +279,11 @@ export interface SubmitPredictionData {
 
 export interface SearchHistoryItem {
     id: number;
-    query: string;
+    user_id: number;
+    searchable_type: string;
+    searchable_id: number;
+    search_text: string;
     created_at: string;
-    type: 'search' | 'tag';
 }
 
 export interface SearchHistoryResponse {
