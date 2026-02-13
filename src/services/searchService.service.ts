@@ -1,5 +1,5 @@
 import { apiClient } from '../lib/axios';
-import { SearchHistoryResponse, SearchHistoryItem, ApiResponse } from '../types/api';
+import { SearchHistoryItem, ApiResponse } from '../types/api';
 
 /**
  * Search Service
@@ -21,9 +21,20 @@ export const searchService = {
      */
     async getSearchHistory(): Promise<SearchHistoryItem[]> {
         try {
-            const response = await apiClient.get<SearchHistoryResponse>('/search-history');
+            const response = await apiClient.get<ApiResponse<SearchHistoryItem[]>>('/search-history');
+            
+            // apiClient.get returns ApiResponse<T>, so response.data is SearchHistoryItem[]
             if (response.success && response.data) {
-                return response.data.data;
+                if (Array.isArray(response.data)) {
+                    return response.data;
+                }
+                // Handle nested structure if API returns {data: {data: [...]}}
+                if (response.data && typeof response.data === 'object' && 'data' in response.data) {
+                    const nestedData = (response.data as any).data;
+                    if (Array.isArray(nestedData)) {
+                        return nestedData;
+                    }
+                }
             }
             return [];
         } catch (error) {

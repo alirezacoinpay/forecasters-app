@@ -9,8 +9,7 @@ import { PredictionCardSkeleton } from './PredictionCardSkeleton';
 import { usePredictionFeed } from '../hooks/predictions/usePredictionFeed.ts.tsx';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { searchService } from '../services/searchService.service';
-import { SearchHistoryItem } from '../types/api';
-import { Tag } from '../types/api';
+import { SearchHistoryItem, Tag, Topic } from '../types/api';
 import { useTranslation } from '../hooks/useTranslation';
 import {PredictionCardSummary} from "./PredictionCardSummary.tsx";
 import {tagService} from "../services/tagService.service.ts";
@@ -21,12 +20,14 @@ interface SearchPageProps {
     selectedTag?: Tag;
     onClearSelectedTag: () => void;
     onTagSelected: (tagTitle: Tag) => void;
+    onTopicSelected?: (topicId: number) => void;
 }
 
-export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSelectedTag, onTagSelected}: SearchPageProps) {
+export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSelectedTag, onTagSelected, onTopicSelected}: SearchPageProps) {
   const t = useTranslation();
-  const [searchQuery, setSearchQuery] = useState(selectedTag?.title || '');
-  const [debouncedQuery, setDebouncedQuery] = useState(selectedTag?.title || '');
+  // When a tag is selected, keep search input empty - only tag_id will be used for API
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<SearchHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,6 +35,7 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
   const [tagResults, setTagResults] = useState<Tag[]>([]);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
   const [loadingTags, setLoadingTags] = useState(false);
+  const [selectedTopicId, setSelectedTopicId] = useState<number | undefined>(undefined);
 
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -47,6 +49,8 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
 
         // Normal text search → let debounce handle it
     };
+
+    // Don't clear search query when tag is selected - allow user to search within tag results
 
     // Debounce search query
   useEffect(() => {
@@ -71,10 +75,11 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
       }
     };
 
-    if (!debouncedQuery) {
+    // Load recent searches when there's no search query, tag, or topic selected
+    if (!debouncedQuery && !selectedTag && !selectedTopicId) {
       loadRecentSearches();
     }
-  }, [debouncedQuery]);
+  }, [debouncedQuery, selectedTag, selectedTopicId]);
 
   // Focus input when component mounts
   useEffect(() => {
@@ -87,8 +92,9 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
 
     const { predictions, loading, pagination, loadMore } =
         usePredictionFeed(
+            // Send search query if present (can be combined with tag_id or topic_id)
             debouncedQuery || undefined,
-            undefined,
+            selectedTopicId, // topic_id from recent search
             undefined,
             selectedTag?.id
         );
@@ -97,11 +103,15 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
   const { isLoading: isLoadingMore, sentinelRef } = useInfiniteScroll({
     onLoadMore: loadMore,
     hasMore,
-    enabled: !loading && predictions.length > 0 && !!debouncedQuery,
+    // Enable infinite scroll when there are results and either search query, tag, or topic is present
+    enabled: !loading && predictions.length > 0 && (!!debouncedQuery || !!selectedTag || !!selectedTopicId),
   });
 
     const handleSearch = (value: string) => {
         setSearchQuery(value);
+        
+        // Keep the tag selected even when user types - don't clear it
+        // The tag will remain active and both tag_id and search query can be used together
 
         const hashIndex = value.lastIndexOf('#');
 
@@ -151,7 +161,28 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
   };
 
   const handleRecentSearchClick = (item: SearchHistoryItem) => {
-    setSearchQuery(item.search_text);
+    // Clear previous selections
+    onClearSelectedTag();
+    setSelectedTopicId(undefined);
+    setSearchQuery('');
+    setDebouncedQuery('');
+    
+    // Handle based on searchable_type
+    if (item.searchable_type === 'App\\Models\\Tag' && item.searchable) {
+      // It's a tag - select the tag
+      const tag = item.searchable as Tag;
+      onTagSelected(tag);
+    } else if (item.searchable_type === 'App\\Models\\Topic' && item.searchable) {
+      // It's a topic - select the topic
+      const topic = item.searchable as Topic;
+      setSelectedTopicId(topic.id);
+      if (onTopicSelected) {
+        onTopicSelected(topic.id);
+      }
+    } else if (item.search_text) {
+      // It's a text search
+      setSearchQuery(item.search_text);
+    }
   };
 
   const handleDismissRecentSearch = async (id: number, e: React.MouseEvent) => {
@@ -177,9 +208,12 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
         setDebouncedQuery('');
     };
 
-    const showTrending = !debouncedQuery && !selectedTag;
-  const showRecentSearches = !debouncedQuery && recentSearches.length > 0 && !loadingHistory;
-  const showSearchResults = !!debouncedQuery;
+    const showTrending = !debouncedQuery && !selectedTag && !selectedTopicId;
+  // Show recent searches when no query/tag/topic and we have recent searches loaded
+  // Show them even if trending is loading/loaded - they should appear above trending
+  const showRecentSearches = !debouncedQuery && !selectedTag && !selectedTopicId && recentSearches.length > 0 && !loadingHistory;
+  // Show search results when there's a query OR when a tag or topic is selected
+  const showSearchResults = !!debouncedQuery || !!selectedTag || !!selectedTopicId;
 
 
   return (
@@ -273,14 +307,24 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
                 className="w-full flex items-center justify-between py-2 px-2 hover:bg-gray-100 rounded transition-colors text-left"
               >
                 <div className="flex items-center gap-2">
-                  {item.searchable_type === 'tag' ? (
+                  {item.searchable_type === 'App\\Models\\Tag' || item.searchable_type === 'tag' ? (
                     <div className="w-5 h-5 rounded-full bg-[#FF6B35]/20 flex items-center justify-center">
                       <span className="text-[#FF6B35] text-xs font-bold">#</span>
+                    </div>
+                  ) : item.searchable_type === 'App\\Models\\Topic' || item.searchable_type === 'topic' ? (
+                    <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 text-xs">📁</span>
                     </div>
                   ) : (
                     <Clock className="w-4 h-4 text-muted-foreground" />
                   )}
-                  <span className="text-sm text-foreground">{item.search_text}</span>
+                  <span className="text-sm text-foreground">
+                    {item.searchable_type === 'App\\Models\\Tag' && item.searchable
+                      ? (item.searchable as Tag).title
+                      : item.searchable_type === 'App\\Models\\Topic' && item.searchable
+                      ? (item.searchable as Topic).title
+                      : item.search_text || t('ui.search.recentSearch')}
+                  </span>
                 </div>
                 <Button
                   variant="ghost"

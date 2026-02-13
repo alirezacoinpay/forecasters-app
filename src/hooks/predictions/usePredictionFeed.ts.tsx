@@ -39,6 +39,7 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number, predic
             };
             
             // Add search query if present
+            // When both tag and search query are present, send both (user is filtering tag results with search)
             if (searchQuery) {
                 params.search = searchQuery;
             }
@@ -56,6 +57,7 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number, predic
                 params.topic_id = topicId;
             }
 
+            // Add tag_id if present (when tag is selected, only tag_id should be sent, not search text)
             if (tagId !== undefined && tagId !== DEFAULT_TOPIC_ID && !predictionId) {
                 params.tag_id = tagId;
             }
@@ -98,7 +100,7 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number, predic
                 }
             }
         }
-    }, [searchQuery, topicId, predictionId]);
+    }, [searchQuery, topicId, predictionId, tagId]);
 
     // Track previous predictionId to detect when it's cleared after successful load
     const prevPredictionIdRef = useRef<number | undefined>(predictionId);

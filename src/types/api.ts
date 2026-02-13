@@ -266,6 +266,8 @@ export interface ActivityLogData {
 export interface Topic {
     id: number;
     title: string;
+    icon?: string;
+    status?: string;
     category_id?: number;
 }
 
@@ -280,9 +282,10 @@ export interface SubmitPredictionData {
 export interface SearchHistoryItem {
     id: number;
     user_id: number;
-    searchable_type: string;
-    searchable_id: number;
-    search_text: string;
+    searchable_type: string | null;
+    searchable_id: number | null;
+    search_text: string | null;
+    searchable: Topic | Tag | null;
     created_at: string;
 }
 

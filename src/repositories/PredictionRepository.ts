@@ -40,16 +40,30 @@ export class PredictionRepository {
         if (Array.isArray(responseData)) {
             // Direct array response
             dataArray = responseData;
-        } else if (responseData?.data && Array.isArray(responseData.data)) {
-            // Nested structure: response.data is an object with data, links, meta
-            dataArray = responseData.data;
-            // Extract pagination meta if available
-            if (responseData.meta) {
-                paginationMeta = {
-                    current_page: responseData.meta.current_page || paginationMeta.current_page,
-                    per_page: responseData.meta.per_page || paginationMeta.per_page,
-                    last_page: responseData.meta.last_page || paginationMeta.last_page,
-                };
+        } else if (responseData?.data) {
+            // Handle nested structure: response.data.data contains the array
+            if (Array.isArray(responseData.data)) {
+                // Structure: {data: [...], meta: {...}}
+                dataArray = responseData.data;
+                // Extract pagination meta if available
+                if (responseData.meta) {
+                    paginationMeta = {
+                        current_page: responseData.meta.current_page || paginationMeta.current_page,
+                        per_page: responseData.meta.per_page || paginationMeta.per_page,
+                        last_page: responseData.meta.last_page || paginationMeta.last_page,
+                    };
+                }
+            } else if (responseData.data?.data && Array.isArray(responseData.data.data)) {
+                // Structure: {data: {data: [...], meta: {...}}}
+                dataArray = responseData.data.data;
+                // Extract pagination meta if available
+                if (responseData.data.meta) {
+                    paginationMeta = {
+                        current_page: responseData.data.meta.current_page || paginationMeta.current_page,
+                        per_page: responseData.data.meta.per_page || paginationMeta.per_page,
+                        last_page: responseData.data.meta.last_page || paginationMeta.last_page,
+                    };
+                }
             }
         }
         
