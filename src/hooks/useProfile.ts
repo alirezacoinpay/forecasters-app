@@ -10,7 +10,7 @@ export function useProfile(userId?: string) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [stats, setStats] = useState({
-    predictionsCount: 0,
+    userPredictionsCount: 0,
     accuracy: 0,
     score: 0,
   });
@@ -25,11 +25,11 @@ export function useProfile(userId?: string) {
         const user = await userService.getCurrentUser();
         setProfile(user);
         
-        // Mock stats (these should come from API in future)
+        // Use actual stats from API
         setStats({
-          predictionsCount: 156,
-          accuracy: 87,
-          score: 1200,
+          userPredictionsCount: user.userPredictionsCount || 0,
+          accuracy: 87, // TODO: Get from API when available
+          score: 1200, // TODO: Get from API when available
         });
       } catch (err: any) {
         const error = err as Error;
@@ -46,7 +46,7 @@ export function useProfile(userId?: string) {
         setLoading(false);
       }
     }
-  }, [userId]);
+  }, [userId, t]);
 
   useEffect(() => {
     loadProfile();

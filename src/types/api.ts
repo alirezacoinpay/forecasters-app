@@ -131,6 +131,20 @@ export interface AuthResponse {
     user: User;
 }
 
+export interface UserPrediction {
+    id: number;
+    percentage: string;
+    user_id: number;
+    prediction_option_id: number;
+    created_at: string;
+    updated_at: string;
+    likesCount? : number;
+    isLiked? : boolean;
+    timePast : string;
+    prediction: Prediction;
+    predictionOption: PredictionOption;
+}
+
 export interface User {
     id: string;
     name: string;
@@ -145,6 +159,8 @@ export interface User {
     is_verified?: boolean;
     email_verified_at?: string;
     mobile_verified_at?: string;
+    userPredictions?: UserPrediction[];
+    userPredictionsCount?: number;
 }
 
 export interface UserListParams {

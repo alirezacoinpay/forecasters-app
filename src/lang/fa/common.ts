@@ -58,6 +58,7 @@ export const fa = {
       activeUserBadge: 'کاربر فعال',
       newPredictionInCategory: 'پیش‌بینی جدید در دسته {category} ثبت کردید',
       hoursAgo: '{hours} ساعت پیش',
+      selectedOption : 'گزینه انتخابی'
     },
     placeholders: {
       search: 'جستجو',

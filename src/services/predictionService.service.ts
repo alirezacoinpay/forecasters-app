@@ -1,25 +1,21 @@
-import { apiClient } from '../lib/axios';
+import {apiClient} from '../lib/axios';
 import {
+    ApiResponse,
+    CreatePredictionData,
+    LikePredictionResponse,
     Prediction,
     PredictionListParams,
-    UpdatePredictionData,
-    CreatePredictionData,
-    PaginatedResponse,
-    ApiResponse,
     SubmitPredictionData,
-    LikePredictionResponse,
+    UpdatePredictionData,
 } from '../types/api';
 
 export const predictionService = {
     // Get predictions list with pagination
     async getPredictionFeed(params?: PredictionListParams): Promise<ApiResponse<Prediction[]>> {
-        const response = await apiClient.get<ApiResponse<Prediction[]>>(
+        return await apiClient.get<ApiResponse<Prediction[]>>(
             '/prediction-feed',
-            { params }
+            {params}
         );
-
-
-        return response;
     },
 
     // Get prediction by ID
@@ -55,12 +51,10 @@ export const predictionService = {
             });
         }
 
-        const response = await apiClient.upload<ApiResponse<Prediction>>(
+        return await apiClient.upload<ApiResponse<Prediction>>(
             '/predictions',
             formData
         );
-
-        return response;
     },
 
     // Update prediction
@@ -120,12 +114,10 @@ export const predictionService = {
             }
         }
 
-        const response = await apiClient.upload<ApiResponse<Prediction>>(
+        return await apiClient.upload<ApiResponse<Prediction>>(
             '/user-predictions',
             formData
         );
-
-        return response;
     },
 
     /**

@@ -294,7 +294,7 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics, onTopic
                 className="fixed inset-0 z-40"
                 onClick={() => setShowTopicDropdown(false)}
               />
-              <div className="absolute top-full left-0 mt-1 z-50 bg-background border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto min-w-[200px]">
+              <div className="absolute top-full left-0 mt-1 z-50 bg-background fill-red-500 border border-border rounded-lg shadow-lg max-h-60 overflow-y-auto min-w-[200px]">
                 {topics.map((topic) => (
                   <button
                     key={topic.id}

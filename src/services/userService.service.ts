@@ -33,8 +33,8 @@ export const userService = {
      * ```
      */
     async getCurrentUser(): Promise<User> {
-        const response = await apiClient.get<ApiResponse<User>>('/me');
-        return response.data;
+        const response = await apiClient.get<ApiResponse<{ user: User }>>('/me');
+        return response.data.user;
     },
 
     /**
