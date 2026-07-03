@@ -144,7 +144,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
             setIsSubmitting(false);
         }
     };
-    
+
 
     return (
         <div
@@ -198,7 +198,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
             >
                 {/* Drag handle indicator - also draggable */}
                 <div 
-                    className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing"
+                    className="flex items-center justify-center pt-3 cursor-grab active:cursor-grabbing"
                     onMouseDown={onMouseDown}
                     onTouchStart={onTouchStart}
                 >
@@ -228,79 +228,18 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                         }
                     }}
                 >
-                    <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 pb-2 flex items-center justify-between z-10">
+                    <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 flex items-center justify-between z-10">
                         <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
                             <ChevronDown className="w-5 h-5" />
                         </Button>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1.5 h-8"
-                                onClick={handleLike}
-                                disabled={isLiking}
-                            >
-                                <Heart 
-                                    className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
-                                />
-                                <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
-                                    {formatCount(likesCount)}
-                                </span>
-                            </Button>
-                            <span className="text-xs text-muted-foreground">{prediction.timePast}</span>
-                            <span className="text-xs text-muted-foreground">•</span>
-                            <span className="text-sm">{prediction.user?.username || t('ui.anonymous')}</span>
-                            <div className="w-6 h-6 rounded-full bg-[#FF6B35] flex items-center justify-center">
-                                <TrendingUp className="w-3 h-3 text-white" />
-                            </div>
+                        <div className="px-3">
+                            <span className="text-md font-medium">comments</span>
                         </div>
+
+
                     </div>
 
                     <div className="px-4 py-6 space-y-6">
-                        <div>
-                            <p id="prediction-detail-title" className="text-sm font-semibold leading-relaxed mb-2">{prediction.title}</p>
-
-                            <div className="flex flex-wrap gap-1.5">
-                                {prediction.tags.map((tag) => (
-                                    <Badge
-                                        key={tag.id}
-                                        variant="outline"
-                                        style={{ backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }}
-                                        className="rounded-md h-6 cursor-pointer"
-                                        onClick={(e: React.MouseEvent) => {
-                                            e.stopPropagation();
-                                            if (onTagClick) {
-                                                onTagClick(tag);
-                                                handleClose();
-                                            }
-                                        }}
-                                    >
-                                        {tag.title}
-                                    </Badge>
-                                ))}
-                            </div>
-
-                            <div className="space-y-3 mt-4">
-                                <PredictionsOptions
-                                    prediction={prediction}
-                                    selectedOptionId={selectedOption}
-                                    onOptionSelect={setSelectedOption}
-                                    showHeader={true}
-                                    interactive={true}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg border border-border p-4 space-y-4">
-                            {prediction.text && (
-                                <div className="space-y-2">
-                                    <h4 className="text-sm">{t('ui.labels.description')}</h4>
-                                    <p className="text-xs text-gray-600 leading-relaxed">{prediction.text}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        
                         {prediction.commentsCount > 0 && prediction.comments && prediction.comments.length > 0 && (
                             <CommentSection 
                                 comments={prediction.comments} 
@@ -315,16 +254,6 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                         )}
 
                     </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 bg-background border-t border-border w-full px-4 py-3 shadow-lg">
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={!selectedOption || isSubmitting}
-                        className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white rounded-lg font-bold text-md w-full py-6"
-                    >
-                        {isSubmitting ? t('ui.buttons.submitting') : t('ui.buttons.submit')}
-                    </Button>
                 </div>
             </div>
         </div>

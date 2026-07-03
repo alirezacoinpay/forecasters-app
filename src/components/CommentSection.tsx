@@ -311,10 +311,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
 
   return (
     <div className="space-y-4" dir="rtl">
-      <div className="flex items-center justify-between border-b border-border">
-        <h3 className="pb-3">نظرات کاربران</h3>
-        <span className="text-xs text-muted-foreground">{allComments.length} نظر</span>
-      </div>
 
       {/* Always visible comment box at bottom for new comments */}
       {predictionId && (

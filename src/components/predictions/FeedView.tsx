@@ -14,9 +14,10 @@ interface FeedViewProps {
     topicId?: number;
     predictionId?: number;
     onDeepLinkLoaded?: () => void;
+    onPredictionClick?: (prediction: Prediction) => void;
 }
 
-export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded } : FeedViewProps) {
+export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded, onPredictionClick } : FeedViewProps) {
     const t = useTranslation();
     const { predictions, loading, pagination, loadMore, refresh } = usePredictionFeed(searchQuery, topicId, predictionId);
 
@@ -167,12 +168,7 @@ export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded }
                             >
                                 <PredictionCard
                                     prediction={prediction}
-                                    onClick={() => {
-                                        // This will open the PredictionDetail
-                                        // The parent (App.tsx) handles this via setSelectedPrediction
-                                        // We need to pass this up
-                                        // For now, we'll use a custom event or callback
-                                    }}
+                                    onCommentClick={() => onPredictionClick?.(prediction)}
                                 />
                             </div>
                         ))}

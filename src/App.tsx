@@ -241,6 +241,7 @@ export default function App() {
                             setIsDeepLinkLoading(false);
                             setDeepLinkPredictionId(undefined);
                         }}
+                        onPredictionClick={handlePredictionClick}
                     />
                 ) : (
                     <Suspense fallback={

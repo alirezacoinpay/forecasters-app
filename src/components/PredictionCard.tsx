@@ -19,13 +19,13 @@ import { useTranslation } from '../hooks/useTranslation';
 
 interface PredictionCardProps {
     prediction: Prediction;
-    onClick?: () => void;
+    onCommentClick?: () => void;
     onPredictionUpdate?: (prediction: Prediction) => void;
 }
 
 export const PredictionCard = memo(function PredictionCard({
                                                                prediction,
-                                                               onClick,
+                                                               onCommentClick,
                                                                onPredictionUpdate
                                                            }: PredictionCardProps) {
     const t = useTranslation();
@@ -77,31 +77,8 @@ export const PredictionCard = memo(function PredictionCard({
 
     return (
         <div
-            className="bg-card border-b border-border px-4 py-4 space-y-3 cursor-pointer hover:bg-accent/50 active:scale-[0.98] transition-all duration-3500"
-            onClick={(e) => {
-                // Don't trigger card click if share sheet is open
-                if (showShareSheet) {
-                    e.stopPropagation();
-                    return;
-                }
-                // Don't trigger if click came from a button
-                const target = e.target as HTMLElement;
-                const isButton = target.closest('button');
-                if (isButton) {
-                    return;
-                }
-                onClick?.();
-            }}
+            className="bg-card border-b border-border px-4 py-4 space-y-3"
             dir="rtl"
-            role="button"
-            tabIndex={0}
-            aria-label={`${t('ui.labels.predictions')}: ${prediction.title}`}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onClick?.();
-                }
-            }}
         >
             {/* Header */}
             <div className="flex items-start justify-between">
@@ -202,10 +179,10 @@ export const PredictionCard = memo(function PredictionCard({
                 <Button
                     variant="ghost"
                     className="inline-flex items-center gap-0.5 h-auto p-0 hover:bg-transparent text-gray-500"
-                    onClick={(e: { stopPropagation: () => void; }) => {
+                    aria-label={t('ui.labels.comments')}
+                    onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
-                        // Call the onClick prop to open the detail sheet
-                        onClick?.();
+                        onCommentClick?.();
                     }}
                 >
                     <span className="text-xs">{formatCount(prediction.commentsCount)}</span>
