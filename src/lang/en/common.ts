@@ -13,6 +13,7 @@ export const en = {
       publishing: 'Publishing...',
       send: 'Send',
       sending: 'Sending...',
+      post: 'Post',
       update: 'Update',
       updating: 'Updating...',
     },

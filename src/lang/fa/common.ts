@@ -13,6 +13,7 @@ export const fa = {
       publishing: 'در حال انتشار...',
       send: 'ارسال',
       sending: 'در حال ارسال...',
+      post: 'ارسال',
       update: 'به‌روزرسانی',
       updating: 'در حال به‌روزرسانی...',
     },

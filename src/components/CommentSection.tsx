@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, TrendingUp, MoreVertical, Send, X, Image as ImageIcon } from 'lucide-react';
+import { Heart, MessageCircle, TrendingUp, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
+import { CommentInput } from './CommentInput';
 import {Comment} from "../models/Comment.ts";
 import { toast } from 'sonner';
 import { commentService } from '../services/commentService.service';
-import { activityService } from '../services/activityService.service';
-import { Comment as ApiComment } from '../types/api';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface CommentSectionProps {
@@ -21,10 +19,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
   const [commentLikes, setCommentLikes] = useState<Record<string, number>>({});
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
-  const [commentText, setCommentText] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newComments, setNewComments] = useState<Comment[]>([]);
   const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
   const replyBoxRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +35,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
     const wasLiked = likedComments.has(commentIdStr);
     const currentLikeCount = commentLikes[commentIdStr] ?? currentLikes;
     
-    // Optimistic update
     const newLikeCount = wasLiked ? currentLikeCount - 1 : currentLikeCount + 1;
     setLikedComments((prev) => {
       const newSet = new Set(prev);
@@ -60,14 +53,12 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
     try {
       const response = await commentService.likeComment(commentId);
       
-      // Update with actual response
       setCommentLikes((prev) => ({
         ...prev,
         [commentIdStr]: response.likesCount,
       }));
 
     } catch (error: any) {
-      // Revert optimistic update on error
       setLikedComments((prev) => {
         const newSet = new Set(prev);
         if (wasLiked) {
@@ -96,87 +87,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
     return commentLikes[commentIdStr] ?? defaultCount;
   };
 
-  const handleAddComment = async () => {
-    if (!predictionId) {
-      toast.error(t('errors.addCommentError'), {
-        description: t('errors.predictionIdNotFound'),
-        duration: 3000,
-      });
-      return;
-    }
-
-    if (!commentText.trim()) {
-      toast.error(t('errors.enterComment'), {
-        duration: 3000,
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    const loadingToast = toast.loading(t('ui.loading.loading'));
-
-    try {
-      const newComment = await commentService.addComment({
-        prediction_id: predictionId,
-        text: commentText,
-        file: selectedFile || undefined,
-        parent_id: replyingTo || undefined,
-      });
-
-
-      toast.dismiss(loadingToast);
-      toast.success(t('success.commentSubmitted'), {
-        duration: 2000,
-      });
-
-      // Add to local state
-      if (replyingTo) {
-        // If replying, we'd need to update the parent comment's children
-        // For now, just refresh (callback will be called below)
-      } else {
-        // Add as new root comment - convert API Comment to model Comment
-        const modelComment = new Comment(newComment as any);
-        setNewComments((prev) => [modelComment, ...prev]);
-      }
-
-      // Reset form
-      setCommentText('');
-      setSelectedFile(null);
-      setReplyingTo(null);
-      setReplyingToCommentId(null);
-
-      // Refresh if callback provided (called once for both replies and root comments)
-      if (onCommentAdded) {
-        onCommentAdded();
-      }
-    } catch (error: any) {
-      toast.dismiss(loadingToast);
-      const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
-      toast.error(t('errors.submitCommentError'), {
-        description: errorMessage,
-        duration: 3000,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file size (e.g., max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(t('errors.fileSize'), {
-          duration: 3000,
-        });
-        return;
-      }
-      setSelectedFile(file);
-    }
-  };
-
-  const allComments = [...newComments, ...comments];
-
   const toggleReplies = (commentId: string) => {
     setExpandedReplies((prev) => {
       const newSet = new Set(prev);
@@ -190,56 +100,46 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
   };
 
   const handleReplyClick = (commentId: string, commentDbId: number) => {
-    // Toggle: if already replying to this comment, close it
     if (replyingToCommentId === commentId) {
-      setReplyingTo(null);
-      setReplyingToCommentId(null);
-      setCommentText('');
-      setSelectedFile(null);
+      closeReplyBox();
     } else {
-      // Open reply box for this comment
       setReplyingTo(commentDbId);
       setReplyingToCommentId(commentId);
-      setCommentText('');
-      setSelectedFile(null);
     }
   };
 
   const closeReplyBox = () => {
     setReplyingTo(null);
     setReplyingToCommentId(null);
-    setCommentText('');
-    setSelectedFile(null);
   };
 
-  // Handle click outside to close reply box
+  const handleReplyAdded = () => {
+    closeReplyBox();
+    onCommentAdded?.();
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!replyingToCommentId) return;
 
       const target = event.target as HTMLElement;
       
-      // Check if click is on a reply button - don't close in this case
       const isReplyButton = target.closest('button[data-reply-button]');
       if (isReplyButton) return;
 
-      // Check if click is inside the reply box
       if (replyBoxRef.current && replyBoxRef.current.contains(target)) {
         return;
       }
 
-      // Check if click is inside the main comment box (at bottom)
       const mainCommentBox = document.querySelector('[data-main-comment-box]');
       if (mainCommentBox && mainCommentBox.contains(target)) {
         return;
       }
 
-      // Click is outside - close the reply box
       closeReplyBox();
     };
 
     if (replyingToCommentId) {
-      // Add event listener with a small delay to avoid immediate closure when opening
       const timeoutId = setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside);
       }, 100);
@@ -251,80 +151,19 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
     }
   }, [replyingToCommentId]);
 
-  const renderCommentBox = (parentCommentId?: string) => {
-    const isReplying = replyingToCommentId === parentCommentId;
-    return (
-      <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-border">
-        <Textarea
-          placeholder={isReplying ? t('ui.placeholders.enterComment') : t('ui.placeholders.enterComment')}
-          value={commentText}
-          onChange={(e) => {
-            setCommentText(e.target.value);
-            // If typing in main box while replying, clear reply state
-            if (!parentCommentId && replyingTo) {
-              setReplyingTo(null);
-              setReplyingToCommentId(null);
-            }
-          }}
-          className="min-h-[80px] resize-none"
-          dir="rtl"
-          disabled={isSubmitting}
-        />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <label className="flex items-center text-muted-foreground cursor-pointer hover:text-[#FF6B35] transition-colors">
-              <ImageIcon className="w-5 h-5" />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-                disabled={isSubmitting}
-              />
-            </label>
-            {selectedFile && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                {selectedFile.name}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={() => setSelectedFile(null)}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </span>
-            )}
-          </div>
-          <Button
-            onClick={handleAddComment}
-            disabled={!commentText.trim() || isSubmitting}
-            className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
-            size="sm"
-          >
-            {isSubmitting ? 'در حال ارسال...' : 'ارسال'}
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4" dir="rtl">
-
-      {/* Always visible comment box at bottom for new comments */}
-      {predictionId && (
-        <div className="mb-4" data-main-comment-box>
-          {renderCommentBox()}
-        </div>
+      {comments.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          {t('ui.emptyStates.noComments')}
+        </p>
       )}
-      
-      {allComments.map((comment, index) => {
+
+      {comments.map((comment, index) => {
         const commentId = comment.id;
         const isLiked = comment.isLikedByMe
         return (
           <div key={commentId} className="space-y-3">
-            {/* Comment Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2 flex-1">
                 <div className="w-8 h-8 rounded-full bg-[#FF6B35] flex items-center justify-center shrink-0">
@@ -332,7 +171,7 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm truncate">{comment.user?.username || 'ناشناس'}</span>
+                    <span className="text-sm truncate">{comment.user?.username || t('ui.anonymous')}</span>
                     <span className="text-xs text-muted-foreground">{comment.time_past}</span>
                   </div>
                 </div>
@@ -342,12 +181,10 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
               </Button>
             </div>
 
-            {/* Comment Content */}
             <p className="text-xs text-gray-700 leading-relaxed pr-10">
               {comment.text}
             </p>
 
-            {/* Comment Actions */}
             <div className="flex items-center gap-6 pr-10">
               <button
                 onClick={() => toggleLike(commentId, comment.likesCount)}
@@ -385,14 +222,17 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
               )}
             </div>
 
-            {/* Reply Comment Box - appears under the comment being replied to */}
             {replyingToCommentId === String(commentId) && predictionId && (
               <div ref={replyBoxRef} className="pr-8 mt-2">
-                {renderCommentBox(String(commentId))}
+                <CommentInput
+                  predictionId={predictionId}
+                  parentId={replyingTo ?? undefined}
+                  variant="inline"
+                  onCommentAdded={handleReplyAdded}
+                />
               </div>
             )}
 
-            {/* Expandable Nested Comments */}
             {comment.childrenCount > 0 && expandedReplies.has(String(commentId)) && comment.children && comment.children.length > 0 && (
               <div className="pr-8 mt-3 space-y-3 border-r-2 border-gray-200">
                 {comment.children.map((child, childIndex) => {
@@ -407,7 +247,7 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs truncate">{child.user?.username || 'ناشناس'}</span>
+                              <span className="text-xs truncate">{child.user?.username || t('ui.anonymous')}</span>
                               <span className="text-xs text-muted-foreground">{child.time_past}</span>
                             </div>
                           </div>
@@ -443,10 +283,14 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
                         )}
                       </div>
                       
-                      {/* Reply box for nested comments */}
                       {replyingToCommentId === String(childId) && predictionId && (
                         <div ref={replyBoxRef} className="pr-4 mt-2">
-                          {renderCommentBox(String(childId))}
+                          <CommentInput
+                            predictionId={predictionId}
+                            parentId={replyingTo ?? undefined}
+                            variant="inline"
+                            onCommentAdded={handleReplyAdded}
+                          />
                         </div>
                       )}
                     </div>
@@ -455,7 +299,6 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
               </div>
             )}
 
-            {/* Divider */}
             <div className="border-b border-gray-100"></div>
           </div>
         );

@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import {Prediction} from "../models/Prediction.ts";
 import { CommentSection } from './CommentSection';
+import { CommentInput } from './CommentInput';
 import { PredictionsOptions } from './PredictionsOptions';
 import { toast } from 'sonner';
 import { predictionService } from '../services/predictionService.service';
@@ -207,52 +208,55 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
 
                 <div 
                     ref={contentRef}
-                    className="h-full pb-24"
+                    className="flex flex-col h-full overflow-y-auto"
                     style={{
-                        overflowY: canScroll ? 'auto' : 'hidden',
                         overscrollBehavior: 'contain',
                         WebkitOverflowScrolling: 'touch',
                         touchAction: canScroll ? 'pan-y' : 'none',
-                        pointerEvents: 'auto', // Ensure content is interactive
+                        pointerEvents: 'auto',
                         position: 'relative',
                         height: '100%',
                     }}
                     onTouchStart={(e) => {
-                        // Stop propagation to prevent container from handling this touch
-                        // Only if we're on content and not at top
                         if (canScroll && contentRef.current) {
                             const atTop = contentRef.current.scrollTop <= 5;
                             if (!atTop) {
-                                e.stopPropagation(); // Prevent container drag handlers
+                                e.stopPropagation();
                             }
                         }
                     }}
                 >
-                    <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 flex items-center justify-between z-10">
+                    <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 pb-2 flex items-center justify-between z-10">
                         <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
                             <ChevronDown className="w-5 h-5" />
                         </Button>
                         <div className="px-3">
-                            <span className="text-md font-medium">comments</span>
+                            <span className="text-md font-medium">{t('ui.labels.comments')}</span>
                         </div>
-
-
                     </div>
 
-                    <div className="px-4 py-6 space-y-6">
-                        {prediction.commentsCount > 0 && prediction.comments && prediction.comments.length > 0 && (
-                            <CommentSection 
-                                comments={prediction.comments} 
-                                predictionId={prediction.id}
-                                onCommentAdded={() => {
-                                    // Refresh prediction data if needed
-                                    if (onRefresh) {
-                                        onRefresh();
-                                    }
-                                }}
-                            />
-                        )}
+                    <div className="flex-1 px-4 py-4">
+                        <CommentSection 
+                            comments={prediction.comments ?? []} 
+                            predictionId={prediction.id}
+                            onCommentAdded={() => {
+                                if (onRefresh) {
+                                    onRefresh();
+                                }
+                            }}
+                        />
+                    </div>
 
+                    <div className="sticky bottom-0 shrink-0 border-t border-border bg-background px-4 py-3 z-10 mb-4 ">
+                        <CommentInput
+                            predictionId={prediction.id}
+                            variant="sheet"
+                            onCommentAdded={() => {
+                                if (onRefresh) {
+                                    onRefresh();
+                                }
+                            }}
+                        />
                     </div>
                 </div>
             </div>
