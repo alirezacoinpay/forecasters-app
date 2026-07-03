@@ -775,6 +775,10 @@
     min-width: calc(var(--spacing) * 0);
   }
 
+  .min-w-1 {
+    min-width: 1px;
+  }
+
   .flex-1 {
     flex: 1;
   }

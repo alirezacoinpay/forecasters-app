@@ -81,60 +81,41 @@ export function Header({
                 }}
                 {...swipeHandlers}
             >
-                <div className="flex items-center justify-between px-4 py-3 flex-row-reverse">
-                     {/*Left Side - Topic Dropdown (reversed to appear on left in LTR)*/}
-                    <div className="flex items-center gap-3 relative" style={{ minWidth: '80px', overflowX: 'hidden' }}>
-                        <div className="relative">
-                            <Button
-                                variant="ghost"
-                                className="gap-2 justify-start"
-                                onClick={() => setShowDropdown(!showDropdown)}
-                            >
-                      <span className="text-[#FF6B35] text-xl font-black">
-                          {topicDisplay}
-                      </span>
-                                <ChevronDown className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
-                            </Button>
-                        </div>
-                    </div>
-                    {/* Right Side - Search (reversed to appear on right in LTR) */}
-                    <div className="flex items-center gap-3">
-
-                        <LogoSearch
-                            onClick={onSearchClick}
-                        />
-                    </div>
+                <div className="px-4 py-3">
+                    <LogoSearch
+                        onClick={onSearchClick}
+                    />
                 </div>
             </header>
 
             {/* Dropdown Menu - Outside header to prevent scrolling issues */}
-            {showDropdown && (
-                <>
-                    <div
-                        className="fixed inset-0 z-[55]"
-                        onClick={() => setShowDropdown(false)}
-                    />
-                    <div
-                        className="fixed top-[52px] z-[60] bg-background border border-border shadow-lg rounded-2xl"
-                        dir="ltr"
-                    >
-                        <div className="py-2">
-                            {topics.map((topic) => (
-                                <button
-                                    key={topic.id}
-                                    onClick={() => handleTopicSelect(topic.id)}
-                                    className={`w-full flex items-center justify-left pl-6 pr-14 py-3 hover:bg-gray-100 transition-colors font-semibold ${selectedTopicId === topic.id ? 'bg-gray-100' : ''}`}
-                                >
-                                    <HomeIcon className='w-5 h-5' />
-                                    <span className={selectedTopicId === topic.id ? 'text-[#FF6B35] ml-2' : 'ml-2'}>
-                                {topic.title}
-                              </span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </>
-            )}
+            {/*{showDropdown && (*/}
+            {/*    <>*/}
+            {/*        <div*/}
+            {/*            className="fixed inset-0 z-[55]"*/}
+            {/*            onClick={() => setShowDropdown(false)}*/}
+            {/*        />*/}
+            {/*        <div*/}
+            {/*            className="fixed top-[52px] z-[60] bg-background border border-border shadow-lg rounded-2xl"*/}
+            {/*            dir="ltr"*/}
+            {/*        >*/}
+            {/*            <div className="py-2">*/}
+            {/*                {topics.map((topic) => (*/}
+            {/*                    <button*/}
+            {/*                        key={topic.id}*/}
+            {/*                        onClick={() => handleTopicSelect(topic.id)}*/}
+            {/*                        className={`w-full flex items-center justify-left pl-6 pr-14 py-3 hover:bg-gray-100 transition-colors font-semibold ${selectedTopicId === topic.id ? 'bg-gray-100' : ''}`}*/}
+            {/*                    >*/}
+            {/*                        <HomeIcon className='w-5 h-5' />*/}
+            {/*                        <span className={selectedTopicId === topic.id ? 'text-[#FF6B35] ml-2' : 'ml-2'}>*/}
+            {/*                    {topic.title}*/}
+            {/*                  </span>*/}
+            {/*                    </button>*/}
+            {/*                ))}*/}
+            {/*            </div>*/}
+            {/*        </div>*/}
+            {/*    </>*/}
+            {/*)}*/}
         </>
     );
 }

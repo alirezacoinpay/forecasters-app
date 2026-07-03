@@ -14,7 +14,6 @@ const LogoSearch = ({
         flex
         items-center
         justify-between
-        w-[260px]
         h-[42px]
         border
         rounded-full
@@ -29,15 +28,16 @@ const LogoSearch = ({
         >
             {/* Left side */}
             <div className="flex items-center gap-2">
-              <span className="text-gray-400 flex items-center mt-2">
-                Find in
-              </span>
 
               <img src={logo} alt="logo" className="h-5 w-auto opacity-70" />
+              <span className="text-[#ff6501ff] mt-2">
+                Find in Forecasters
+              </span>
+
             </div>
 
             {/* Right side */}
-            <Search className="w-5 h-5 text-gray-400 flex items-center" />
+            <Search className="w-5 h-5 text-[#ff6501ff] items-center" />
         </div>
     );
 };

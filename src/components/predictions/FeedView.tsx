@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { PredictionCard } from "../PredictionCard";
 import { PredictionCardSkeleton } from "../PredictionCardSkeleton";
-import { useSwipe } from "../../hooks/useSwipe";
 import { usePredictionFeed } from "../../hooks/predictions/usePredictionFeed.ts.tsx";
 import { usePullToRefresh } from "../../hooks/usePullToRefresh";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
@@ -11,34 +10,30 @@ import { activityService } from "../../services/activityService.service";
 import { useTranslation } from "../../hooks/useTranslation";
 
 interface FeedViewProps {
-    onPredictionClick: (prediction: Prediction) => void;
-    onSwipeLeft: () => void;
-    onSwipeRight: () => void;
     searchQuery?: string;
     topicId?: number;
     predictionId?: number;
-    onTagClick?: (tag: { id: number; title: string; color: string }) => void;
     onDeepLinkLoaded?: () => void;
 }
 
-export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQuery, topicId, predictionId, onTagClick, onDeepLinkLoaded } : FeedViewProps) {
+export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded } : FeedViewProps) {
     const t = useTranslation();
     const { predictions, loading, pagination, loadMore, refresh } = usePredictionFeed(searchQuery, topicId, predictionId);
-    
+
     // Handle deep link: when prediction is loaded, just notify parent
     // For deep links, we stay on "Forecasters" topic and don't extract/change topic
     useEffect(() => {
         if (predictionId && predictions.length > 0 && !loading) {
             // The shared prediction should be at the top (first in array)
             const sharedPrediction = predictions[0];
-            
+
             // Verify this is the shared prediction
             if (sharedPrediction.id === predictionId) {
                 // Notify that deep link is loaded (this will clear predictionId to prevent re-fetch)
                 if (onDeepLinkLoaded) {
                     onDeepLinkLoaded();
                 }
-                
+
                 // Scroll to top to show the shared prediction
                 setTimeout(() => {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -87,7 +82,10 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
             });
         }
     }, [predictions.length, loading, topicId]);
-    
+
+
+
+
     // Listen for refresh events
     useEffect(() => {
         const handleRefresh = () => {
@@ -98,22 +96,22 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
             window.removeEventListener('refresh-feed', handleRefresh);
         };
     }, [refresh]);
-    
-    const swipe = useSwipe({ 
-        onSwipeLeft: () => {
-            onSwipeLeft();
-        },
-        onSwipeRight: () => {
-            onSwipeRight();
-        },
-    });
-    
+
+    // const swipe = useSwipe({
+    //     onSwipeLeft: () => {
+    //         onSwipeLeft();
+    //     },
+    //     onSwipeRight: () => {
+    //         onSwipeRight();
+    //     },
+    // });
+
     // Only spread event handlers, not state values
-    const swipeHandlers = {
-        onTouchStart: swipe.onTouchStart,
-        onTouchEnd: swipe.onTouchEnd,
-    };
-    
+    // const swipeHandlers = {
+    //     onTouchStart: swipe.onTouchStart,
+    //     onTouchEnd: swipe.onTouchEnd,
+    // };
+    //
     const { isRefreshing, elementRef } = usePullToRefresh({
         onRefresh: async () => {
             await refresh();
@@ -122,7 +120,7 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
     });
 
     const hasMore = pagination.page < pagination.lastPage;
-    
+
     const { isLoading: isLoadingMore, sentinelRef } = useInfiniteScroll({
         onLoadMore: loadMore,
         hasMore,
@@ -130,8 +128,7 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
     });
 
     return (
-        <div 
-            {...swipeHandlers} 
+        <div
             ref={elementRef as any}
             className="space-y-0 relative"
             style={{ minHeight: '100vh', overflowX: 'hidden' }}
@@ -161,17 +158,21 @@ export function FeedView({ onPredictionClick, onSwipeLeft, onSwipeRight, searchQ
                 ) : predictions.length > 0 ? (
                     <>
                         {predictions.map((prediction: Prediction, index: number) => (
-                            <div 
+                            <div
                                 key={prediction.id}
                                 className="fade-in"
-                                style={{ 
+                                style={{
                                     animationDelay: `${index * 0.05}s`,
                                 }}
                             >
                                 <PredictionCard
                                     prediction={prediction}
-                                    onClick={() => onPredictionClick(prediction)}
-                                    onTagClick={onTagClick}
+                                    onClick={() => {
+                                        // This will open the PredictionDetail
+                                        // The parent (App.tsx) handles this via setSelectedPrediction
+                                        // We need to pass this up
+                                        // For now, we'll use a custom event or callback
+                                    }}
                                 />
                             </div>
                         ))}
