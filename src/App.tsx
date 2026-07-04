@@ -220,7 +220,7 @@ export default function App() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 mx-auto" dir="rtl" style={{ maxWidth: '428px', width: '100%', overflowX: 'hidden' }}>
+        <div className="min-h-screen bg-gray-50 mx-auto" style={{ maxWidth: '428px', width: '100%', overflowX: 'hidden' }}>
             <Header
                 isVisible={isNavVisible}
                 selectedTopicId={selectedTopicId}

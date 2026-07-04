@@ -24,9 +24,7 @@ const TRANSITION_MS = 300;
 
 export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }: PredictionDetailProps) {
     const t = useTranslation();
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isVisible, setIsVisible] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
     const [likesCount, setLikesCount] = useState(prediction.predictionLikes ?? 0);
     const [isLiking, setIsLiking] = useState(false);
@@ -70,82 +68,6 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
         }, 100);
     }, [containerRef]);
 
-    const handleLike = async () => {
-        if (isLiking) return;
-
-        const wasLiked = isLiked;
-        const previousCount = likesCount;
-
-        // Optimistic update
-        setIsLiked(!wasLiked);
-        setLikesCount(wasLiked ? previousCount - 1 : previousCount + 1);
-        setIsLiking(true);
-
-        try {
-            const response = await predictionService.likePrediction(prediction.id);
-
-            // Update with actual response
-            setIsLiked(response.is_liked);
-            setLikesCount(response.likesCount);
-
-        } catch (error: any) {
-            // Revert optimistic update on error
-            setIsLiked(wasLiked);
-            setLikesCount(previousCount);
-            
-            const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
-            toast.error(t('errors.likeError'), {
-                description: errorMessage,
-                duration: 3000,
-            });
-        } finally {
-            setIsLiking(false);
-        }
-    };
-
-    const handleSubmit = async () => {
-        if (!selectedOption) {
-            toast.error(t('errors.selectOption'), {
-                duration: 3000,
-            });
-            return;
-        }
-
-        setIsSubmitting(true);
-        const loadingToast = toast.loading(t('ui.loading.loading'));
-
-        try {
-            await predictionService.submitPrediction({
-                prediction_option_id: Number(selectedOption),
-            });
-
-
-            toast.dismiss(loadingToast);
-            toast.success(t('success.predictionSubmitted'), {
-                duration: 2000,
-            });
-
-            // Refresh feed if callback provided
-            if (onRefresh) {
-                onRefresh();
-            }
-
-            // Close modal after success
-            setTimeout(() => {
-                handleClose();
-            }, 300);
-        } catch (error: any) {
-            toast.dismiss(loadingToast);
-            const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
-            toast.error(t('errors.submitPredictionError'), {
-                description: errorMessage,
-                duration: 3000,
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
 
     return (
         <div
@@ -182,7 +104,6 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                     }
                     onTouchStart(e);
                 }}
-                dir="rtl"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="prediction-detail-title"
@@ -231,11 +152,11 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                             <ChevronDown className="w-5 h-5" />
                         </Button>
                         <div className="px-3">
-                            <span className="text-md font-medium">{t('ui.labels.comments')}</span>
+                            <span className="text-sm font-medium">{t('ui.labels.comments')}</span>
                         </div>
                     </div>
 
-                    <div className="flex-1 px-4 py-4">
+                    <div className="flex-1 px-4 py-4 mb-4">
                         <CommentSection 
                             comments={prediction.comments ?? []} 
                             predictionId={prediction.id}
@@ -247,7 +168,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                         />
                     </div>
 
-                    <div className="sticky bottom-0 shrink-0 border-t border-border bg-background px-4 py-3 z-10 mb-4 ">
+                    <div className="sticky bottom-4 shrink-0 border-t border-border bg-background px-3 py-2 z-10 overflow-hidden">
                         <CommentInput
                             predictionId={prediction.id}
                             variant="sheet"

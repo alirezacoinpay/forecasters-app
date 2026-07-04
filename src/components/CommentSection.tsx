@@ -152,7 +152,7 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
   }, [replyingToCommentId]);
 
   return (
-    <div className="space-y-4" dir="rtl">
+    <div className="space-y-4">
       {comments.length === 0 && (
         <p className="text-sm text-muted-foreground text-center py-4">
           {t('ui.emptyStates.noComments')}

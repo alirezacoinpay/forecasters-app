@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Image as ImageIcon } from 'lucide-react';
+import {X, Image as ImageIcon, SendIcon, Loader2} from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { toast } from 'sonner';
@@ -34,8 +34,6 @@ export function CommentInput({
     if (!commentText.trim()) return;
 
     setIsSubmitting(true);
-    const loadingToast = toast.loading(t('ui.loading.loading'));
-
     try {
       await commentService.addComment({
         prediction_id: predictionId,
@@ -43,15 +41,10 @@ export function CommentInput({
         file: selectedFile || undefined,
         parent_id: parentId,
       });
-
-      toast.dismiss(loadingToast);
-      toast.success(t('success.commentSubmitted'), { duration: 2000 });
-
       setCommentText('');
       setSelectedFile(null);
       onCommentAdded?.();
     } catch (error: any) {
-      toast.dismiss(loadingToast);
       const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
       toast.error(t('errors.submitCommentError'), {
         description: errorMessage,
@@ -88,10 +81,14 @@ export function CommentInput({
                   variant='ghost'
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className={` text-gray-500 shrink-0 ${isSheet ? 'h-10 px-4' : ''}`}
+                  className={` text-gray-500 shrink-0 ${isSheet ? 'px-4' : ''}`}
                   size="sm"
               >
-                  {isSubmitting ? t('ui.buttons.sending') : t('ui.buttons.post')}
+                  {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                      <SendIcon className="h-4 w-4" />
+                  )}
               </Button>
           )}
         <Input
@@ -99,37 +96,11 @@ export function CommentInput({
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           className={`resize-none  text-xs font-400`}
-          dir="rtl"
+          dir="ltr"
           onFocus={() => setSelectedFile(null)}
           disabled={isSubmitting}
         />
       </div>
-
-      {/*<div className="flex items-center gap-2">*/}
-      {/*  <label className="flex items-center text-muted-foreground transition-colors">*/}
-      {/*    <ImageIcon className="w-5 h-5" />*/}
-      {/*    <input*/}
-      {/*      type="file"*/}
-      {/*      accept="image/*"*/}
-      {/*      onChange={handleFileSelect}*/}
-      {/*      className="hidden"*/}
-      {/*      disabled={isSubmitting}*/}
-      {/*    />*/}
-      {/*  </label>*/}
-      {/*  {selectedFile && (*/}
-      {/*    <span className="text-xs text-muted-foreground flex items-center gap-1">*/}
-      {/*      {selectedFile.name}*/}
-      {/*      <Button*/}
-      {/*        variant="ghost"*/}
-      {/*        size="icon"*/}
-      {/*        className="h-4 w-4"*/}
-      {/*        onClick={() => setSelectedFile(null)}*/}
-      {/*      >*/}
-      {/*        <X className="w-3 h-3" />*/}
-      {/*      </Button>*/}
-      {/*    </span>*/}
-      {/*  )}*/}
-      {/*</div>*/}
     </div>
   );
 }

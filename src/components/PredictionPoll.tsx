@@ -61,7 +61,7 @@ export function PredictionPoll({
 
     return (
         <div className="w-full" dir="ltr">
-            <div className="space-y-2">
+            <div className="space-y-2" dir="ltr">
                 {prediction.options.map((option) => {
                     const percentage =
                         prediction.userPredictionsCount > 0
@@ -93,10 +93,11 @@ export function PredictionPoll({
                             onClick={() => handleOptionClick(option.id)}
                             className={`
                                 relative w-full rounded-md overflow-hidden border-gray-200
+                                h-8
                                 cursor-pointer hover:opacity-90 active:opacity-80 transition-all duration-200
                                 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}
                             `}
-                            style={{ minHeight: 40 }}
+                            style={{ minHeight: 32 }}
                         >
                             {/* Progress bar fill */}
                             <div
@@ -109,18 +110,20 @@ export function PredictionPoll({
                             />
 
                             {/* Content row - using grid for perfect centering */}
-                            <div className="relative grid grid-cols-[1fr_auto] items-center px-4 py-2 gap-3 h-full min-h-[40px]">
-                                <span className={`
-                                    text-sm 
-                                    truncate 
-                                    text-gray-900 
-                                    ${isLeading ? 'font-semibold' : 'font-400'}
-                                `}>
+                            <div className="relative flex items-center justify-between px-4 h-full">
+                                <span
+                                    className={`text-sm truncate text-gray-900 ${
+                                        isLeading ? 'font-semibold' : 'font-normal'
+                                    }`}
+                                >
                                     {option.title}
                                 </span>
-                                <span className={`flex-shrink-0 text-xs
-                                    ${isLeading ? 'font-semibold' : 'font-400'}
-                                    tabular-nums text-gray-900`}>
+
+                                <span
+                                    className={`text-xs tabular-nums text-gray-900 ${
+                                        isLeading ? 'font-semibold' : 'font-normal'
+                                    }`}
+                                >
                                     {percentage}%
                                 </span>
                             </div>

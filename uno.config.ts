@@ -18,6 +18,7 @@ export default defineConfig({
         fontFamily: {
             vazir: 'vazir',
             yekanBakh: 'yekanBakh',
+            Poppins: 'Poppins',
         },
     },
 

@@ -78,10 +78,18 @@ export const PredictionCard = memo(function PredictionCard({
     return (
         <div
             className="bg-card border-b border-border px-4 py-4 space-y-3"
-            dir="rtl"
         >
             {/* Header */}
             <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
+                        <TrendingUp className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-sm font-700">{prediction.user?.username || t('ui.anonymous')}</span>
+                    <span className="text-xs font-300 text-muted-foreground">•</span>
+                    <span className="text-xs font-300 text-muted-foreground">{prediction.timePast}</span>
+                </div>
+
                 <Button
                     variant="ghost"
                     size="icon"
@@ -93,14 +101,6 @@ export const PredictionCard = memo(function PredictionCard({
                 >
                     <MoreHorizontal className="w-4 h-4" />
                 </Button>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-300 text-muted-foreground">{prediction.timePast}</span>
-                    <span className="text-xs font-300 text-muted-foreground">•</span>
-                    <span className="text-sm font-700">{prediction.user?.username || t('ui.anonymous')}</span>
-                    <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
-                        <TrendingUp className="w-3 h-3 text-white" />
-                    </div>
-                </div>
             </div>
 
             {/* Prediction */}
@@ -116,6 +116,21 @@ export const PredictionCard = memo(function PredictionCard({
 
             {/* Actions */}
             <div className="flex items-center justify-between">
+
+
+                {/* Comment Button - Opens PredictionDetail */}
+                <Button
+                    variant="ghost"
+                    className="inline-flex items-center gap-0.5 h-auto p-0 hover:bg-transparent text-gray-500"
+                    aria-label={t('ui.labels.comments')}
+                    onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        onCommentClick?.();
+                    }}
+                >
+                    <MessageCircle className="w-4 h-4" />
+                    <span className="text-xs">{formatCount(prediction.commentsCount)}</span>
+                </Button>
                 {/* Share Button */}
                 <Button
                     variant="ghost"
@@ -138,10 +153,9 @@ export const PredictionCard = memo(function PredictionCard({
                         setShowShareSheet(true);
                     }}
                 >
-                    <span className="text-sm">{formatCount(prediction.predictionForwardCount)}</span>
                     <ForwardCustomIcon className="w-4 h-4" />
+                    <span className="text-sm">{formatCount(prediction.predictionForwardCount)}</span>
                 </Button>
-
                 {/* Like Button */}
                 <Button
                     variant="ghost"
@@ -167,26 +181,12 @@ export const PredictionCard = memo(function PredictionCard({
                         e.stopPropagation();
                     }}
                 >
-                    <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        {formatCount(likesCount)}
-                    </span>
                     <Heart
                         className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
                     />
-                </Button>
-
-                {/* Comment Button - Opens PredictionDetail */}
-                <Button
-                    variant="ghost"
-                    className="inline-flex items-center gap-0.5 h-auto p-0 hover:bg-transparent text-gray-500"
-                    aria-label={t('ui.labels.comments')}
-                    onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        onCommentClick?.();
-                    }}
-                >
-                    <span className="text-xs">{formatCount(prediction.commentsCount)}</span>
-                    <MessageCircle className="w-4 h-4" />
+                    <span className={`text-xs ${isLiked ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        {formatCount(likesCount)}
+                    </span>
                 </Button>
             </div>
 

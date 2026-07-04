@@ -11,8 +11,7 @@
       <App />
       <Toaster 
         position="top-right" 
-        richColors 
-        dir="rtl"
+        richColors
         duration={3000}
         closeButton
         toastOptions={{
