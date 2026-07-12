@@ -123,17 +123,6 @@ export function PredictionPoll({
 
     return (
         <div className="w-full" dir="ltr">
-            <div className="flex items-center gap-4 mb-3 text-xs text-gray-500">
-                <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#7EB6E0]" />
-                    {t('ui.labels.communityVote')}
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#F5C842]" />
-                    {t('ui.labels.yourPrediction')}
-                </span>
-            </div>
-
             <div className="space-y-2.5" dir="ltr">
                 {prediction.options.map((option) => {
                     const percentage = percentages[option.id] ?? 0;
@@ -158,7 +147,7 @@ export function PredictionPoll({
                             className={`
                                 relative w-full rounded-lg overflow-hidden bg-[#E8ECF0]
                                 h-10
-                                ${hasUserVoted ? 'cursor-default' : 'cursor-pointer hover:opacity-90 active:opacity-80'}
+                                ${hasUserVoted ? 'cursor-default' : 'cursor-pointer active:opacity-80'}
                                 ${isSubmitting ? 'pointer-events-none' : ''}
                             `}
                         >

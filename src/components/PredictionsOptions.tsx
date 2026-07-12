@@ -49,7 +49,6 @@ export function PredictionsOptions({
                         : 0;
                     const optionCount = formatCount(option.userPredictionsCount);
                     const isSelected = selectedOptionId === String(option.id);
-
                     return (
                         <div
                             key={option.id}
