@@ -81,13 +81,13 @@ export function CommentInput({
                   variant='ghost'
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className={` text-gray-500 shrink-0 ${isSheet ? 'px-4' : ''}`}
+                  className={` text-[#ff6501ff] ${isSheet ? 'px-4' : ''}`}
                   size="sm"
               >
                   {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
-                      <SendIcon className="h-4 w-4" />
+                      <SendIcon className="h-5 w-5" />
                   )}
               </Button>
           )}
@@ -95,7 +95,7 @@ export function CommentInput({
           placeholder={t('ui.placeholders.enterComment')}
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
-          className={`resize-none  text-xs font-400`}
+          className={`resize-none  text-xs font-400 rounded-full`}
           dir="ltr"
           onFocus={() => setSelectedFile(null)}
           disabled={isSubmitting}

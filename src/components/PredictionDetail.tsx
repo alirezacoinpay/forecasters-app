@@ -148,12 +148,12 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                     }}
                 >
                     <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 pb-2 flex items-center justify-between z-10">
-                        <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
-                            <ChevronDown className="w-5 h-5" />
-                        </Button>
                         <div className="px-3">
                             <span className="text-sm font-medium">{t('ui.labels.comments')}</span>
                         </div>
+                        <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
+                            <ChevronDown className="w-5 h-5" />
+                        </Button>
                     </div>
 
                     <div className="flex-1 px-4 py-4 mb-4">
