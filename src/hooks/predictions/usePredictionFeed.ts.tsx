@@ -156,6 +156,12 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number, predic
         });
     }, [load, loading, loadingMore]);
 
+    const updatePrediction = useCallback((updated: Prediction) => {
+        setPredictions((prev) =>
+            prev.map((prediction) => (prediction.id === updated.id ? updated : prediction))
+        );
+    }, []);
+
     return {
         predictions,
         loading,
@@ -167,5 +173,6 @@ export function usePredictionFeed(searchQuery?: string, topicId?: number, predic
         },
         refresh: () => load(1, false),
         loadMore,
+        updatePrediction,
     };
 }

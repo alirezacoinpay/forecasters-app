@@ -1,10 +1,77 @@
 import { apiClient } from '../lib/axios';
 import {
-    Comment,
+    Comment as ApiComment,
     AddCommentData,
     LikeCommentResponse,
     ApiResponse,
 } from '../types/api';
+import { Comment } from '../models/Comment';
+
+interface CommentsPaginationMeta {
+    current_page: number;
+    per_page: number;
+    last_page: number;
+}
+
+interface CommentsPageResult {
+    comments: Comment[];
+    meta: CommentsPaginationMeta;
+}
+
+function parsePaginatedComments(
+    responseData: unknown,
+    fallbackPage: number,
+    fallbackPerPage: number
+): CommentsPageResult {
+    let dataArray: unknown[] = [];
+    let paginationMeta: CommentsPaginationMeta = {
+        current_page: fallbackPage,
+        per_page: fallbackPerPage,
+        last_page: 1,
+    };
+
+    if (Array.isArray(responseData)) {
+        dataArray = responseData;
+    } else if (responseData && typeof responseData === 'object') {
+        const data = responseData as Record<string, unknown>;
+
+        if (Array.isArray(data.data)) {
+            dataArray = data.data;
+            if (data.meta && typeof data.meta === 'object') {
+                const meta = data.meta as Record<string, number>;
+                paginationMeta = {
+                    current_page: meta.current_page ?? paginationMeta.current_page,
+                    per_page: meta.per_page ?? paginationMeta.per_page,
+                    last_page: meta.last_page ?? paginationMeta.last_page,
+                };
+            }
+        } else if (data.data && typeof data.data === 'object') {
+            const nested = data.data as Record<string, unknown>;
+            if (Array.isArray(nested.data)) {
+                dataArray = nested.data;
+                if (nested.meta && typeof nested.meta === 'object') {
+                    const meta = nested.meta as Record<string, number>;
+                    paginationMeta = {
+                        current_page: meta.current_page ?? paginationMeta.current_page,
+                        per_page: meta.per_page ?? paginationMeta.per_page,
+                        last_page: meta.last_page ?? paginationMeta.last_page,
+                    };
+                } else {
+                    paginationMeta = {
+                        current_page: (nested.current_page as number) ?? paginationMeta.current_page,
+                        per_page: (nested.per_page as number) ?? paginationMeta.per_page,
+                        last_page: (nested.last_page as number) ?? paginationMeta.last_page,
+                    };
+                }
+            }
+        }
+    }
+
+    return {
+        comments: Comment.fromArray(dataArray),
+        meta: paginationMeta,
+    };
+}
 
 /**
  * Service for managing comment-related API calls
@@ -42,7 +109,7 @@ export const commentService = {
      * });
      * ```
      */
-    async addComment(data: AddCommentData): Promise<Comment> {
+    async addComment(data: AddCommentData): Promise<ApiComment> {
         const formData = new FormData();
         formData.append('prediction_id', String(data.prediction_id));
         formData.append('text', data.text);
@@ -55,7 +122,7 @@ export const commentService = {
             formData.append('parent_id', String(data.parent_id));
         }
 
-        const response = await apiClient.upload<ApiResponse<Comment>>(
+        const response = await apiClient.upload<ApiResponse<ApiComment>>(
             '/comments',
             formData
         );
@@ -107,12 +174,15 @@ export const commentService = {
     async getComments(
         predictionId: number | string,
         params?: { page?: number; per_page?: number }
-    ): Promise<ApiResponse<Comment[]>> {
-        const response = await apiClient.get<ApiResponse<Comment[]>>(
+    ): Promise<CommentsPageResult> {
+        const page = params?.page ?? 1;
+        const perPage = params?.per_page ?? 15;
+
+        const response = await apiClient.get<ApiResponse<unknown>>(
             `/predictions/${predictionId}/comments`,
-            { params }
+            { params: { page, paginate: perPage } }
         );
-        
-        return response;
+
+        return parsePaginatedComments(response.data, page, perPage);
     },
 };

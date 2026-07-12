@@ -204,9 +204,6 @@ export default function App() {
                         <PredictionDetail
                             prediction={selectedPrediction}
                             onClose={() => setSelectedPrediction(null)}
-                            onRefresh={() => {
-                                window.dispatchEvent(new Event('refresh-feed'));
-                            }}
                             onTagClick={(tag) => {
                                 setSearchPageTag(tag);
                                 setShowSearchPage(true);
@@ -268,9 +265,6 @@ export default function App() {
                     <PredictionDetail
                         prediction={selectedPrediction}
                         onClose={() => setSelectedPrediction(null)}
-                        onRefresh={() => {
-                            window.dispatchEvent(new Event('refresh-feed'));
-                        }}
                         onTagClick={(tag) => {
                             setSearchPageTag(tag);
                             setShowSearchPage(true);

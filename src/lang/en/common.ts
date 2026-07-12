@@ -59,6 +59,9 @@ export const en = {
       activeUserBadge: 'Active User',
       newPredictionInCategory: 'You registered a new prediction in {category} category',
       hoursAgo: '{hours} hours ago',
+      communityVote: 'Community vote',
+      yourPrediction: 'Your prediction',
+      yourPick: 'your pick',
     },
     placeholders: {
       search: 'Search',

@@ -3,16 +3,17 @@ import {
     ApiResponse,
     CreatePredictionData,
     LikePredictionResponse,
-    Prediction,
+    Prediction as ApiPrediction,
     PredictionListParams,
     SubmitPredictionData,
     UpdatePredictionData,
 } from '../types/api';
+import { Prediction } from '../models/Prediction';
 
 export const predictionService = {
     // Get predictions list with pagination
-    async getPredictionFeed(params?: PredictionListParams): Promise<ApiResponse<Prediction[]>> {
-        return await apiClient.get<ApiResponse<Prediction[]>>(
+    async getPredictionFeed(params?: PredictionListParams): Promise<ApiResponse<ApiPrediction[]>> {
+        return await apiClient.get<ApiResponse<ApiPrediction[]>>(
             '/prediction-feed',
             {params}
         );
@@ -20,12 +21,12 @@ export const predictionService = {
 
     // Get prediction by ID
     async getPredictionById(id: number | string): Promise<Prediction> {
-        const response = await apiClient.get<ApiResponse<Prediction>>(`/predictions/${id}`);
-        return response.data;
+        const response = await apiClient.get<ApiResponse<ApiPrediction>>(`/predictions/${id}`);
+        return new Prediction(response.data);
     },
 
     // Create prediction
-    async createPrediction(data: CreatePredictionData): Promise<ApiResponse<Prediction>> {
+    async createPrediction(data: CreatePredictionData): Promise<ApiResponse<ApiPrediction>> {
         const formData = new FormData();
         formData.append('title', data.title);
         if (data.text) {
@@ -51,15 +52,15 @@ export const predictionService = {
             });
         }
 
-        return await apiClient.upload<ApiResponse<Prediction>>(
+        return await apiClient.upload<ApiResponse<ApiPrediction>>(
             '/predictions',
             formData
         );
     },
 
     // Update prediction
-    async updatePrediction(id: string, userData: UpdatePredictionData): Promise<Prediction> {
-        const response = await apiClient.put<{ data: Prediction }>(
+    async updatePrediction(id: string, userData: UpdatePredictionData): Promise<ApiPrediction> {
+        const response = await apiClient.put<{ data: ApiPrediction }>(
             `/predictions/${id}`,
             userData
         );
@@ -101,7 +102,7 @@ export const predictionService = {
      * });
      * ```
      */
-    async submitPrediction(data: SubmitPredictionData): Promise<ApiResponse<Prediction>> {
+    async submitPrediction(data: SubmitPredictionData): Promise<ApiResponse<ApiPrediction>> {
         const formData = new FormData();
         formData.append('prediction_option_id', String(data.prediction_option_id));
 
@@ -114,7 +115,7 @@ export const predictionService = {
             }
         }
 
-        return await apiClient.upload<ApiResponse<Prediction>>(
+        return await apiClient.upload<ApiResponse<ApiPrediction>>(
             '/user-predictions',
             formData
         );

@@ -12,7 +12,14 @@ export class Prediction {
     resolveAt: string | null;
     timePast: string;
     tags: Array<{ id: number; title: string; color: string }>;
-    options: Array<{ id: number; title: string; prediction_id: number; is_true: number; userPredictionsCount: number }>;
+    options: Array<{
+        id: number;
+        title: string;
+        prediction_id: number;
+        is_true: number;
+        userPredictionsCount: number;
+        myPrediction?: unknown;
+    }>;
     comments: Comment[];
     user: { username: string; mobile: string } | null;
     commentsCount: number;
@@ -39,7 +46,7 @@ export class Prediction {
         this.timePast = data.time_past || '';
         this.tags = data.tags ?? [];
         this.options = data.predictionOptions ?? [];
-        this.comments = (data.comments ?? []).map((c: any) => new Comment(c));
+        this.comments = [];
         this.user = data.user ?? null;
         this.commentsCount = data.commentsCount ?? 0;
         this.userPredictionsCount = data.userPredictionsCount ?? 0;

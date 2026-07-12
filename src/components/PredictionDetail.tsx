@@ -1,39 +1,33 @@
-import { useState, useEffect } from 'react';
-import { TrendingUp, ChevronDown, Heart } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import {Prediction} from "../models/Prediction.ts";
 import { CommentSection } from './CommentSection';
 import { CommentInput } from './CommentInput';
-import { PredictionsOptions } from './PredictionsOptions';
-import { toast } from 'sonner';
-import { predictionService } from '../services/predictionService.service';
-import { activityService } from '../services/activityService.service';
 import { useBottomSheet } from '../hooks/useBottomSheet';
-import { formatCount } from '../utils/format';
+import { useComments } from '../hooks/useComments';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface PredictionDetailProps {
     prediction: Prediction;
     onClose: () => void;
-    onRefresh?: () => void;
     onTagClick?: (tag: { id: number; title: string; color: string }) => void;
 }
 
 const TRANSITION_MS = 300;
 
-export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }: PredictionDetailProps) {
+export function PredictionDetail({ prediction, onClose, onTagClick }: PredictionDetailProps) {
     const t = useTranslation();
     const [isVisible, setIsVisible] = useState(false);
-    const [isLiked, setIsLiked] = useState(prediction.isLiked ?? false);
-    const [likesCount, setLikesCount] = useState(prediction.predictionLikes ?? 0);
-    const [isLiking, setIsLiking] = useState(false);
-
-    // Sync state when prediction prop changes
-    useEffect(() => {
-        setIsLiked(prediction.isLiked ?? false);
-        setLikesCount(prediction.predictionLikes ?? 0);
-    }, [prediction.isLiked, prediction.predictionLikes]);
+    const {
+        comments,
+        loading: commentsLoading,
+        loadingMore: commentsLoadingMore,
+        loadMore: loadMoreComments,
+        refresh: refreshComments,
+        hasMore: hasMoreComments,
+    } = useComments(prediction.id);
 
     const handleClose = () => {
         setIsVisible(false);
@@ -59,6 +53,18 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
         closeThreshold: 30,
         velocityThreshold: 0.5,
     });
+
+    const { sentinelRef } = useInfiniteScroll({
+        onLoadMore: loadMoreComments,
+        hasMore: hasMoreComments,
+        enabled: !commentsLoading && comments.length > 0,
+        rootRef: contentRef,
+    });
+
+    const handleCommentAdded = useCallback(async () => {
+        await refreshComments();
+        contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [refreshComments, contentRef]);
 
     useEffect(() => {
         setIsVisible(true);
@@ -158,13 +164,12 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
 
                     <div className="flex-1 px-4 py-4 mb-4">
                         <CommentSection 
-                            comments={prediction.comments ?? []} 
+                            comments={comments} 
                             predictionId={prediction.id}
-                            onCommentAdded={() => {
-                                if (onRefresh) {
-                                    onRefresh();
-                                }
-                            }}
+                            onCommentAdded={handleCommentAdded}
+                            loading={commentsLoading}
+                            isLoadingMore={commentsLoadingMore}
+                            sentinelRef={sentinelRef}
                         />
                     </div>
 
@@ -172,11 +177,7 @@ export function PredictionDetail({ prediction, onClose, onRefresh, onTagClick }:
                         <CommentInput
                             predictionId={prediction.id}
                             variant="sheet"
-                            onCommentAdded={() => {
-                                if (onRefresh) {
-                                    onRefresh();
-                                }
-                            }}
+                            onCommentAdded={handleCommentAdded}
                         />
                     </div>
                 </div>

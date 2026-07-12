@@ -1,19 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, TrendingUp, MoreVertical } from 'lucide-react';
+import { Heart, TrendingUp, MoreVertical, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { CommentInput } from './CommentInput';
 import { Comment } from "../models/Comment.ts";
 import { toast } from 'sonner';
 import { commentService } from '../services/commentService.service';
 import { useTranslation } from '../hooks/useTranslation';
+import { Skeleton } from './ui/skeleton';
 
 interface CommentSectionProps {
     comments: Comment[];
     predictionId?: number;
     onCommentAdded?: () => void;
+    loading?: boolean;
+    isLoadingMore?: boolean;
+    sentinelRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function CommentSection({ comments, predictionId, onCommentAdded }: CommentSectionProps) {
+export function CommentSection({
+    comments,
+    predictionId,
+    onCommentAdded,
+    loading = false,
+    isLoadingMore = false,
+    sentinelRef,
+}: CommentSectionProps) {
     const t = useTranslation();
     const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
     const [commentLikes, setCommentLikes] = useState<Record<string, number>>({});
@@ -175,15 +186,43 @@ export function CommentSection({ comments, predictionId, onCommentAdded }: Comme
         );
     };
 
+    const renderCommentSkeleton = (key: string) => (
+        <div key={key} className="flex gap-3">
+            <Skeleton className="w-8 h-8 rounded-full shrink-0" />
+            <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-12" />
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+            </div>
+        </div>
+    );
+
     return (
         <div className="space-y-8">
-            {comments.length === 0 && (
+            {loading && comments.length === 0 && (
+                <div className="space-y-8">
+                    {Array.from({ length: 3 }).map((_, index) => renderCommentSkeleton(`comment-skeleton-${index}`))}
+                </div>
+            )}
+
+            {!loading && comments.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-8">
                     {t('ui.emptyStates.noComments')}
                 </p>
             )}
 
             {comments.map((comment) => renderComment(comment))}
+
+            {sentinelRef && <div ref={sentinelRef} className="h-1" />}
+
+            {isLoadingMore && (
+                <div className="flex justify-center py-4">
+                    <Loader2 className="h-5 w-5 animate-spin text-[#FF6B35]" />
+                </div>
+            )}
         </div>
     );
 }

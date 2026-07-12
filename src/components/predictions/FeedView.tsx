@@ -19,7 +19,7 @@ interface FeedViewProps {
 
 export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded, onPredictionClick } : FeedViewProps) {
     const t = useTranslation();
-    const { predictions, loading, pagination, loadMore, refresh } = usePredictionFeed(searchQuery, topicId, predictionId);
+    const { predictions, loading, pagination, loadMore, refresh, updatePrediction } = usePredictionFeed(searchQuery, topicId, predictionId);
 
     // Handle deep link: when prediction is loaded, just notify parent
     // For deep links, we stay on "Forecasters" topic and don't extract/change topic
@@ -169,6 +169,7 @@ export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded, 
                                 <PredictionCard
                                     prediction={prediction}
                                     onCommentClick={() => onPredictionClick?.(prediction)}
+                                    onPredictionUpdate={updatePrediction}
                                 />
                             </div>
                         ))}

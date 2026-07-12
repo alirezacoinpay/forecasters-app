@@ -59,7 +59,10 @@ export const fa = {
       activeUserBadge: 'کاربر فعال',
       newPredictionInCategory: 'پیش‌بینی جدید در دسته {category} ثبت کردید',
       hoursAgo: '{hours} ساعت پیش',
-      selectedOption : 'گزینه انتخابی'
+      selectedOption: 'گزینه انتخابی',
+      communityVote: 'رأی جامعه',
+      yourPrediction: 'پیش‌بینی شما',
+      yourPick: 'انتخاب شما',
     },
     placeholders: {
       search: 'جستجو',

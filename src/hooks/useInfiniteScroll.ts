@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, RefObject } from 'react';
 
 interface UseInfiniteScrollOptions {
     onLoadMore: () => Promise<void> | void;
     hasMore: boolean;
     threshold?: number;
     enabled?: boolean;
+    rootRef?: RefObject<Element | null>;
 }
 
 export function useInfiniteScroll({
@@ -12,6 +13,7 @@ export function useInfiniteScroll({
     hasMore,
     threshold = 200,
     enabled = true,
+    rootRef,
 }: UseInfiniteScrollOptions) {
     const [isLoading, setIsLoading] = useState(false);
     const observerRef = useRef<IntersectionObserver | null>(null);
@@ -36,6 +38,7 @@ export function useInfiniteScroll({
                 }
             },
             {
+                root: rootRef?.current ?? null,
                 rootMargin: `${threshold}px`,
             }
         );
@@ -47,7 +50,7 @@ export function useInfiniteScroll({
                 observerRef.current.disconnect();
             }
         };
-    }, [onLoadMore, hasMore, threshold, enabled, isLoading]);
+    }, [onLoadMore, hasMore, threshold, enabled, isLoading, rootRef]);
 
     return {
         isLoading,

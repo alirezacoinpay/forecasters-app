@@ -232,6 +232,7 @@ export interface PredictionOption {
     prediction_id: number;
     is_true: number;
     userPredictionsCount: number;
+    myPrediction?: unknown;
 }
 
 export interface Tag {
