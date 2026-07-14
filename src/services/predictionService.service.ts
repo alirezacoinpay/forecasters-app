@@ -2,6 +2,7 @@ import {apiClient} from '../lib/axios';
 import {
     ApiResponse,
     CreatePredictionData,
+    LikePredictionApiResponse,
     LikePredictionResponse,
     Prediction as ApiPrediction,
     PredictionListParams,
@@ -161,10 +162,26 @@ export const predictionService = {
      * ```
      */
     async likePrediction(predictionId: number | string): Promise<LikePredictionResponse> {
-        const response = await apiClient.post<ApiResponse<LikePredictionResponse>>(
+        const response = await apiClient.post<LikePredictionApiResponse>(
             `/prediction-likes/${predictionId}/toggle`
         );
-        
-        return response.data;
+
+        // The toggle endpoint returns the updated prediction as
+        // `{ prediction: { userLike, predictionLikes } }`, while older API
+        // versions returned `{ is_liked, likesCount }`. Normalise both forms
+        // so callers can reliably update the heart state and count.
+        const payload = response.data;
+        const prediction = payload.prediction;
+
+        return {
+            ...payload,
+            is_liked: payload.is_liked
+                ?? payload.isLiked
+                ?? Boolean(prediction?.userLike ?? prediction?.user_like),
+            likesCount: payload.likesCount
+                ?? payload.predictionLikes
+                ?? prediction?.predictionLikes
+                ?? 0,
+        };
     },
 };

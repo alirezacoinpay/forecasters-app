@@ -26,11 +26,26 @@ export function CommentSection({
     sentinelRef,
 }: CommentSectionProps) {
     const t = useTranslation();
-    const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+    const [likedComments, setLikedComments] = useState<Set<string>>(
+        () => new Set(
+            comments
+                .filter((comment) => comment.isLikedByMe)
+                .map((comment) => String(comment.id))
+        )
+    );
     const [commentLikes, setCommentLikes] = useState<Record<string, number>>({});
     const [replyingTo, setReplyingTo] = useState<number | null>(null);
     const [replyingToCommentId, setReplyingToCommentId] = useState<string | null>(null);
     const replyBoxRef = useRef<HTMLDivElement>(null);
+
+    // Keep the local liked state in sync when a fresh page of comments loads.
+    useEffect(() => {
+        setLikedComments(new Set(
+            comments
+                .filter((comment) => comment.isLikedByMe)
+                .map((comment) => String(comment.id))
+        ));
+    }, [comments]);
 
     const formatCount = (count: number) => {
         if (count >= 1000) return `${Math.floor(count / 1000)}K`;
@@ -55,6 +70,11 @@ export function CommentSection({
 
         try {
             const response = await commentService.likeComment(commentId);
+            setLikedComments((prev) => {
+                const newSet = new Set(prev);
+                response.liked ? newSet.add(commentIdStr) : newSet.delete(commentIdStr);
+                return newSet;
+            });
             setCommentLikes((prev) => ({
                 ...prev,
                 [commentIdStr]: response.likesCount,
@@ -119,7 +139,7 @@ export function CommentSection({
     const renderComment = (comment: Comment, isChild = false) => {
         const commentId = comment.id;
         const commentIdStr = String(commentId);
-        const isLiked = comment.isLikedByMe || likedComments.has(commentIdStr);
+        const isLiked = likedComments.has(commentIdStr);
         const likeCount = getLikeCount(commentId, comment.likesCount);
 
         const avatarSize = isChild ? 'w-6 h-6' : 'w-8 h-8';

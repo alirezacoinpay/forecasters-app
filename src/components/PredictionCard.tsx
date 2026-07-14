@@ -86,8 +86,6 @@ export const PredictionCard = memo(function PredictionCard({
                         <TrendingUp className="w-3 h-3 text-white" />
                     </div>
                     <span className="text-sm font-700">{prediction.user?.username || t('ui.anonymous')}</span>
-                    <span className="text-xs font-300 text-muted-foreground">•</span>
-                    <span className="text-xs font-300 text-muted-foreground">{prediction.timePast}</span>
                 </div>
 
                 <Button
@@ -117,7 +115,6 @@ export const PredictionCard = memo(function PredictionCard({
             {/* Actions */}
             <div className="flex items-center justify-between">
 
-
                 {/* Comment Button - Opens PredictionDetail */}
                 <Button
                     variant="ghost"
@@ -130,31 +127,6 @@ export const PredictionCard = memo(function PredictionCard({
                 >
                     <MessageCircle className="w-4 h-4" />
                     <span className="text-xs">{formatCount(prediction.commentsCount)}</span>
-                </Button>
-                {/* Share Button */}
-                <Button
-                    variant="ghost"
-                    className="inline-flex items-center gap-0.5 h-auto p-0 hover:bg-transparent text-gray-500"
-                    onTouchStart={(e: React.TouchEvent) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        touchHandledRef.current = true;
-                        setShowShareSheet(true);
-                        setTimeout(() => {
-                            touchHandledRef.current = false;
-                        }, 300);
-                    }}
-                    onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        if (touchHandledRef.current) {
-                            return;
-                        }
-                        setShowShareSheet(true);
-                    }}
-                >
-                    <ForwardCustomIcon className="w-4 h-4" />
-                    <span className="text-sm">{formatCount(prediction.predictionForwardCount)}</span>
                 </Button>
                 {/* Like Button */}
                 <Button
@@ -188,6 +160,33 @@ export const PredictionCard = memo(function PredictionCard({
                         {formatCount(likesCount)}
                     </span>
                 </Button>
+
+                {/* Share Button */}
+                <Button
+                    variant="ghost"
+                    className="inline-flex items-center gap-0.5 h-auto p-0 hover:bg-transparent text-gray-500"
+                    onTouchStart={(e: React.TouchEvent) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        touchHandledRef.current = true;
+                        setShowShareSheet(true);
+                        setTimeout(() => {
+                            touchHandledRef.current = false;
+                        }, 300);
+                    }}
+                    onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        if (touchHandledRef.current) {
+                            return;
+                        }
+                        setShowShareSheet(true);
+                    }}
+                >
+                    <ForwardCustomIcon className="w-4 h-4" />
+                    <span className="text-sm">{formatCount(prediction.predictionForwardCount)}</span>
+                </Button>
+
             </div>
 
             {/* Share Sheet */}

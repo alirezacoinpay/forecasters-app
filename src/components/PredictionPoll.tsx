@@ -1,7 +1,7 @@
 import { Prediction } from '../models/Prediction';
 import { formatCount, getDaysUntilStart } from '../utils/format';
 import { useState } from 'react';
-import { Check } from 'lucide-react';
+import {Check, User2Icon, UserIcon} from 'lucide-react';
 import { toast } from 'sonner';
 import { predictionService } from '../services/predictionService.service';
 import { useTranslation } from '../hooks/useTranslation';
@@ -35,7 +35,6 @@ export function PredictionPoll({
     const t = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const daysUntilStart = getDaysUntilStart(prediction.startsAt);
     const userPickOptionId = getUserPickOptionId(prediction);
     const hasUserVoted = userPickOptionId !== null;
     const predictionTime = formatPredictionTime(prediction);
@@ -147,10 +146,9 @@ export function PredictionPoll({
                 })}
             </div>
 
-            <div className="flex items-center gap-1.5 mt-2.5 text-xs text-gray-400">
+            <div className="flex items-center gap-1 mt-2.5 text-xs text-gray-400">
+                <UserIcon className="w-4 h-4 transition-all"/>
                 <span>{formatCount(prediction.userPredictionsCount)} votes</span>
-                <span>·</span>
-                <span>{daysUntilStart || 'Final results'}</span>
             </div>
         </div>
     );

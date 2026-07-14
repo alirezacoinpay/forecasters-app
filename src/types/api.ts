@@ -199,9 +199,20 @@ export interface Prediction {
   } | null;
   tags: Tag[];
   predictionOptions: PredictionOption[];
+  predictionLikes?: number;
+  /** Present when the authenticated user has liked this prediction. */
+  userLike?: PredictionLike | null;
   /** The authenticated user's prediction for this prediction, when one exists. */
   userPrediction?: UserPrediction | null;
   comments?: Comment[];
+}
+
+export interface PredictionLike {
+    id: number;
+    user_id: number;
+    prediction_id: number;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface PredictionListParams {
@@ -259,7 +270,17 @@ export interface Comment {
     } | null;
     childrenCount: number;
     likesCount: number;
+    /** Present when the authenticated user has liked this comment. */
+    userLike?: CommentLike | null;
     children?: Comment[];
+}
+
+export interface CommentLike {
+    id: number;
+    user_id: number;
+    comment_id: number;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface AddCommentData {
@@ -274,9 +295,34 @@ export interface LikeCommentResponse {
     likesCount: number;
 }
 
+/** Raw toggle payload; the API may return a summary or the full comment. */
+export interface LikeCommentApiResponse {
+    id?: number;
+    liked?: boolean;
+    is_liked?: boolean;
+    isLiked?: boolean;
+    likesCount?: number;
+    userLike?: CommentLike | null;
+    user_like?: CommentLike | null;
+    comment?: Pick<Comment, 'likesCount' | 'userLike'> & {
+        user_like?: CommentLike | null;
+    };
+}
+
 export interface LikePredictionResponse {
     is_liked: boolean;
     likesCount: number;
+}
+
+/** Raw toggle payload; the API may return a summary or the full prediction. */
+export interface LikePredictionApiResponse {
+    is_liked?: boolean;
+    isLiked?: boolean;
+    likesCount?: number;
+    predictionLikes?: number;
+    prediction?: Pick<Prediction, 'predictionLikes' | 'userLike'> & {
+        user_like?: PredictionLike | null;
+    };
 }
 
 export interface ActivityLogData {

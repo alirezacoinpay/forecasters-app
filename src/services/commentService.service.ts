@@ -2,6 +2,7 @@ import { apiClient } from '../lib/axios';
 import {
     Comment as ApiComment,
     AddCommentData,
+    LikeCommentApiResponse,
     LikeCommentResponse,
     ApiResponse,
 } from '../types/api';
@@ -145,11 +146,27 @@ export const commentService = {
      * ```
      */
     async likeComment(commentId: number | string): Promise<LikeCommentResponse> {
-        const response = await apiClient.post<ApiResponse<LikeCommentResponse>>(
+        const response = await apiClient.post<LikeCommentApiResponse>(
             `/comment-likes/${commentId}/toggle`
         );
-        
-        return response.data;
+
+        // Support the legacy summary, an optional `comment` wrapper, and the
+        // current response which returns the updated comment directly.
+        const payload = response.data;
+        const comment = payload.comment;
+
+        return {
+            liked: payload.liked
+                ?? payload.is_liked
+                ?? payload.isLiked
+                ?? Boolean(
+                    payload.userLike
+                    ?? payload.user_like
+                    ?? comment?.userLike
+                    ?? comment?.user_like
+                ),
+            likesCount: payload.likesCount ?? comment?.likesCount ?? 0,
+        };
     },
 
     /**

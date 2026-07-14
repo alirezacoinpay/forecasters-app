@@ -82,7 +82,10 @@ export function BottomSheet({
     const fullyExpandedHeight = maxHeightOption ?? fullyExpandedHeightOption ?? 95;
     const maxHeight = maxHeightOption ?? fullyExpandedHeight;
 
-    const [isVisible, setIsVisible] = useState(isOpen);
+    // Start hidden so the browser can paint the off-screen state before the
+    // opening transition begins. Initialising this from `isOpen` skips that
+    // first paint when the sheet is conditionally mounted.
+    const [isVisible, setIsVisible] = useState(false);
     const openTimeRef = useRef<number>(0);
 
     const handleClose = () => {
@@ -119,12 +122,21 @@ export function BottomSheet({
     useEffect(() => {
         if (isOpen) {
             openTimeRef.current = Date.now();
-            setIsVisible(true);
+            const animationFrame = requestAnimationFrame(() => {
+                setIsVisible(true);
+            });
             // Focus management: focus the sheet content when it opens
-            setTimeout(() => {
+            const focusTimer = window.setTimeout(() => {
                 containerRef.current?.focus();
             }, 100);
+
+            return () => {
+                cancelAnimationFrame(animationFrame);
+                window.clearTimeout(focusTimer);
+            };
         }
+
+        setIsVisible(false);
     }, [isOpen, containerRef]);
 
     // Don't render if not open (parent controls mounting)
@@ -276,4 +288,3 @@ export function BottomSheet({
     
     return bottomSheetContent;
 }
-

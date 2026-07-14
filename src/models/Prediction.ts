@@ -27,6 +27,7 @@ export class Prediction {
     predictionForwardCount: number;
     predictionLikes: number;
     isLiked: boolean;
+    userLike: unknown | null;
     userPrediction: {
         prediction_option_id?: number;
         predictionOptionId?: number;
@@ -66,7 +67,10 @@ export class Prediction {
         this.userPredictionsCount = data.userPredictionsCount ?? optionVoteTotal;
         this.predictionForwardCount = data.predictionForwardCount ?? 0;
         this.predictionLikes = data.predictionLikes ?? 0;
-        this.isLiked = data.isLiked ?? data.is_liked ?? false;
+        this.userLike = data.userLike ?? data.user_like ?? null;
+        // The feed identifies the current user's like with `userLike` rather
+        // than a boolean. Keep supporting the legacy boolean response too.
+        this.isLiked = data.isLiked ?? data.is_liked ?? Boolean(this.userLike);
         this.userPrediction = data.userPrediction ?? data.user_prediction ?? null;
 
      
