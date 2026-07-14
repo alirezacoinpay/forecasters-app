@@ -11,7 +11,7 @@ import { useAutoAuth } from './hooks/useAutoAuth';
 import { Tag } from "./types/api.ts";
 
 // Code splitting: Lazy load heavy components
-const PredictionDetail = lazy(() => import('./components/PredictionDetail').then(m => ({ default: m.PredictionDetail })));
+const CommentsBottomSheet = lazy(() => import('./components/CommentsBottomSheet').then(m => ({ default: m.CommentsBottomSheet })));
 const CreatePredictionPage = lazy(() => import('./components/CreatePredictionPage').then(m => ({ default: m.CreatePredictionPage })));
 const SearchPage = lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
 const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
@@ -201,14 +201,9 @@ export default function App() {
                 </Suspense>
                 {selectedPrediction && (
                     <Suspense fallback={null}>
-                        <PredictionDetail
+                        <CommentsBottomSheet
                             prediction={selectedPrediction}
                             onClose={() => setSelectedPrediction(null)}
-                            onTagClick={(tag) => {
-                                setSearchPageTag(tag);
-                                setShowSearchPage(true);
-                                setSelectedPrediction(null);
-                            }}
                         />
                     </Suspense>
                 )}
@@ -262,14 +257,9 @@ export default function App() {
 
             {selectedPrediction && (
                 <Suspense fallback={null}>
-                    <PredictionDetail
+                    <CommentsBottomSheet
                         prediction={selectedPrediction}
                         onClose={() => setSelectedPrediction(null)}
-                        onTagClick={(tag) => {
-                            setSearchPageTag(tag);
-                            setShowSearchPage(true);
-                            setSelectedPrediction(null);
-                        }}
                     />
                 </Suspense>
             )}

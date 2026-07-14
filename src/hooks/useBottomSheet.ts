@@ -38,6 +38,8 @@ export function useBottomSheet({
     const dragThreshold = 5; // pixels - must move this much to start dragging
     const hasMovedRef = useRef(false);
     const startTargetRef = useRef<EventTarget | null>(null); // Track where touch started
+    const startedInScrollableContentRef = useRef(false);
+    const wasScrollingContentRef = useRef(false);
 
     // Update state based on height
     useEffect(() => {
@@ -54,7 +56,10 @@ export function useBottomSheet({
             setCanScroll(false);
         } else {
             setState('fully-expanded');
-            setCanScroll(true);
+            // Content should become touch-scrollable only after the sheet has
+            // reached its actual maximum height, not halfway through its last
+            // expansion range.
+            setCanScroll(height >= fullyExpandedHeight - 0.5);
         }
     }, [height, isDragging, collapsedHeight, halfExpandedHeight, fullyExpandedHeight]);
 
@@ -97,17 +102,6 @@ export function useBottomSheet({
                 return;
             }
 
-            // If touch starts on the content area and we're fully expanded with scrollable content
-            if (contentRef.current && state === 'fully-expanded' && canScroll) {
-                const isOnContent = contentRef.current.contains(target);
-                const currentScrollTop = contentRef.current.scrollTop;
-                const atTop = currentScrollTop <= 5;
-
-                // If touching content area and NOT at top, don't start tracking (allow scroll)
-                if (isOnContent && !atTop) {
-                    return;
-                }
-            }
         }
 
         // Initialize drag tracking but don't set dragging yet (wait for threshold)
@@ -118,6 +112,13 @@ export function useBottomSheet({
         lastTime.current = performance.now();
         velocity.current = 0;
         startTargetRef.current = target || null;
+        startedInScrollableContentRef.current = Boolean(
+            target instanceof HTMLElement
+            && contentRef.current?.contains(target)
+            && state === 'fully-expanded'
+            && canScroll
+        );
+        wasScrollingContentRef.current = false;
 
         // Check if we're at scroll top
         if (contentRef.current) {
@@ -192,6 +193,8 @@ export function useBottomSheet({
         if (!hasMovedRef.current) {
             startY.current = null;
             startTargetRef.current = null;
+            startedInScrollableContentRef.current = false;
+            wasScrollingContentRef.current = false;
             setIsTracking(false);
             return;
         }
@@ -200,6 +203,8 @@ export function useBottomSheet({
             startY.current = null;
             hasMovedRef.current = false;
             startTargetRef.current = null;
+            startedInScrollableContentRef.current = false;
+            wasScrollingContentRef.current = false;
             setIsTracking(false);
             return;
         }
@@ -217,6 +222,8 @@ export function useBottomSheet({
         lastTime.current = null;
         velocity.current = 0;
         startTargetRef.current = null;
+        startedInScrollableContentRef.current = false;
+        wasScrollingContentRef.current = false;
         setIsTracking(false);
 
         // Close if dragged down past threshold or with high velocity
@@ -262,23 +269,31 @@ export function useBottomSheet({
         // Only handle if we have a start position
         if (startY.current === null || !e.touches[0]) return;
 
-        // Early exit: If touch started on content and we're not at top, don't interfere
-        if (state === 'fully-expanded' && contentRef.current && canScroll && startTargetRef.current) {
-            const startTarget = startTargetRef.current as HTMLElement;
-            const isOnContent = contentRef.current.contains(startTarget);
+        // Allow native scrolling until the list reaches its top. Rather than
+        // cancelling this touch, reset the drag origin there so the same
+        // downward gesture can continue by collapsing the sheet.
+        if (state === 'fully-expanded' && contentRef.current && canScroll && startedInScrollableContentRef.current) {
+            const touch = e.touches[0];
             const currentScrollTop = contentRef.current.scrollTop;
             const atTop = currentScrollTop <= 5;
-            
-            // If touch started on content area and not at top, completely cancel tracking
-            if (isOnContent && !atTop) {
-                // Cancel all tracking immediately
-                startY.current = null;
-                hasMovedRef.current = false;
-                startTargetRef.current = null;
-                setIsTracking(false);
-                isDraggingRef.current = false;
-                setIsDragging(false);
-                return; // Don't prevent default, allow normal scroll
+            const isPullingDown = touch.clientY > startY.current;
+
+            // At full height, upward swipes always belong to the comment list.
+            // A downward swipe belongs to the sheet only once the list is at
+            // its top edge.
+            if (!atTop || !isPullingDown) {
+                wasScrollingContentRef.current = true;
+                return; // Don't prevent default; this is a normal content scroll.
+            }
+
+            if (wasScrollingContentRef.current) {
+                startY.current = touch.clientY;
+                startHeight.current = height;
+                lastY.current = touch.clientY;
+                lastTime.current = performance.now();
+                velocity.current = 0;
+                wasScrollingContentRef.current = false;
+                return;
             }
         }
 

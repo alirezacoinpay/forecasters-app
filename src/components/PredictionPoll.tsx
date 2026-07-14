@@ -82,7 +82,7 @@ export function PredictionPoll({
 
     return (
         <div className="w-full" dir="ltr">
-            <div className="space-y-2.5" dir="ltr">
+            <div className="space-y-2.5">
                 {prediction.options.map((option) => {
                     const percentage = prediction.getOptionPercentage(option.id);
                     const isUserPick = option.id === userPickOptionId;
@@ -106,7 +106,7 @@ export function PredictionPoll({
                             onClick={() => handleOptionClick(option.id)}
                             className={`
                                 relative w-full rounded-lg overflow-hidden bg-[#E8ECF0]
-                                h-10
+                                h-8
                                 ${isUserPick ? 'cursor-default' : 'cursor-pointer active:opacity-80'}
                                 ${isSubmitting ? 'pointer-events-none' : ''}
                             `}
@@ -127,7 +127,7 @@ export function PredictionPoll({
                                 {/*    </div>*/}
                                 {/*)}*/}
 
-                                <span className="text-sm font-medium text-gray-900 truncate">
+                                <span className="text-xs font-medium text-gray-900 truncate">
                                     {option.title}
                                 </span>
 

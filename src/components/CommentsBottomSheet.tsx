@@ -9,15 +9,14 @@ import { useComments } from '../hooks/useComments';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { useTranslation } from '../hooks/useTranslation';
 
-interface PredictionDetailProps {
+interface CommentsBottomSheetProps {
     prediction: Prediction;
     onClose: () => void;
-    onTagClick?: (tag: { id: number; title: string; color: string }) => void;
 }
 
 const TRANSITION_MS = 300;
 
-export function PredictionDetail({ prediction, onClose, onTagClick }: PredictionDetailProps) {
+export function CommentsBottomSheet({ prediction, onClose }: CommentsBottomSheetProps) {
     const t = useTranslation();
     const [isVisible, setIsVisible] = useState(false);
     const {
@@ -49,7 +48,7 @@ export function PredictionDetail({ prediction, onClose, onTagClick }: Prediction
         onClose: handleClose,
         collapsedHeight: 50,
         halfExpandedHeight: 75,
-        fullyExpandedHeight: 95,
+        fullyExpandedHeight: 100,
         closeThreshold: 30,
         velocityThreshold: 0.5,
     });
@@ -88,37 +87,17 @@ export function PredictionDetail({ prediction, onClose, onTagClick }: Prediction
                 ref={containerRef}
                 className="bg-background w-full max-w-2xl rounded-t-3xl overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
-                onMouseDown={(e) => {
-                    // Only handle drag if not clicking on content area when scrollable
-                    if (canScroll && contentRef.current) {
-                        const isOnContent = contentRef.current.contains(e.target as HTMLElement);
-                        const atTop = contentRef.current.scrollTop <= 5;
-                        if (isOnContent && !atTop) {
-                            return; // Allow normal interaction with content
-                        }
-                    }
-                    onMouseDown(e);
-                }}
-                onTouchStart={(e) => {
-                    // Only handle drag if not touching content area when scrollable
-                    if (canScroll && contentRef.current) {
-                        const isOnContent = contentRef.current.contains(e.target as HTMLElement);
-                        const atTop = contentRef.current.scrollTop <= 5;
-                        if (isOnContent && !atTop) {
-                            return; // Allow normal scrolling
-                        }
-                    }
-                    onTouchStart(e);
-                }}
+                onMouseDown={onMouseDown}
+                onTouchStart={onTouchStart}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="prediction-detail-title"
+                aria-labelledby="comments-bottom-sheet-title"
                 tabIndex={-1}
                 style={{
                     transform: isVisible ? 'translateY(0)' : 'translateY(100%)',
                     transition: isDragging ? 'none' : `transform ${TRANSITION_MS}ms cubic-bezier(0.32, 0.72, 0, 1), height ${TRANSITION_MS}ms cubic-bezier(0.32, 0.72, 0, 1)`,
                     height: `${height}vh`,
-                    maxHeight: '95vh',
+                    maxHeight: '100vh',
                     cursor: isDragging ? 'grabbing' : 'default',
                     userSelect: isDragging ? 'none' : 'auto',
                     touchAction: 'none', // Prevent default touch behavior on container, content handles its own
@@ -144,18 +123,12 @@ export function PredictionDetail({ prediction, onClose, onTagClick }: Prediction
                         position: 'relative',
                         height: '100%',
                     }}
-                    onTouchStart={(e) => {
-                        if (canScroll && contentRef.current) {
-                            const atTop = contentRef.current.scrollTop <= 5;
-                            if (!atTop) {
-                                e.stopPropagation();
-                            }
-                        }
-                    }}
                 >
                     <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 pb-2 flex items-center justify-between z-10">
                         <div className="px-3">
-                            <span className="text-sm font-medium">{t('ui.labels.comments')}</span>
+                            <span id="comments-bottom-sheet-title" className="text-sm font-medium">
+                                {t('ui.labels.comments')}
+                            </span>
                         </div>
                         <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
                             <ChevronDown className="w-5 h-5" />

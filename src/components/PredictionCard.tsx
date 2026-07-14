@@ -3,7 +3,7 @@ import {
     MessageCircle,
     MoreHorizontal,
     TrendingUp,
-    Heart,
+    Heart, CalendarDays,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Prediction } from "../models/Prediction.ts";
@@ -77,7 +77,7 @@ export const PredictionCard = memo(function PredictionCard({
 
     return (
         <div
-            className="bg-card border-b border-border px-4 py-4 space-y-3"
+            className="bg-card border-b border-border px-4 py-4 space-y-1"
         >
             {/* Header */}
             <div className="flex items-start justify-between">
@@ -85,25 +85,29 @@ export const PredictionCard = memo(function PredictionCard({
                     <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
                         <TrendingUp className="w-3 h-3 text-white" />
                     </div>
-                    <span className="text-sm font-700">{prediction.user?.username || t('ui.anonymous')}</span>
+                    <span className="text-sm font-500">{prediction.user?.username || t('ui.anonymous')}</span>
+                </div>
+                <div className="flex items-center text-xs gap-2 text-gray-400 self-center">
+                    <CalendarDays className="w-4 h-4" />
+                    <span>{prediction.created_at}</span>
                 </div>
 
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        // TODO: Add menu functionality
-                    }}
-                >
-                    <MoreHorizontal className="w-4 h-4" />
-                </Button>
+                {/*<Button*/}
+                {/*    variant="ghost"*/}
+                {/*    size="icon"*/}
+                {/*    className="h-8 w-8 rounded-full"*/}
+                {/*    onClick={(e: React.MouseEvent) => {*/}
+                {/*        e.stopPropagation();*/}
+                {/*        // TODO: Add menu functionality*/}
+                {/*    }}*/}
+                {/*>*/}
+                {/*    <MoreHorizontal className="w-4 h-4" />*/}
+                {/*</Button>*/}
             </div>
 
             {/* Prediction */}
             <div className="space-y-2">
-                <p className="text-sm font-400 leading-relaxed">{prediction.title}</p>
+                <p className="text-sm font-500 leading-relaxed">{prediction.title}</p>
             </div>
 
             {/* Poll */}
@@ -115,7 +119,7 @@ export const PredictionCard = memo(function PredictionCard({
             {/* Actions */}
             <div className="flex items-center justify-between">
 
-                {/* Comment Button - Opens PredictionDetail */}
+                {/* Comment Button - Opens CommentsBottomSheet */}
                 <Button
                     variant="ghost"
                     className="inline-flex items-center gap-0.5 h-auto p-0 hover:bg-transparent text-gray-500"
