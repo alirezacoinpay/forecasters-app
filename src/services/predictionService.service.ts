@@ -21,8 +21,28 @@ export const predictionService = {
 
     // Get prediction by ID
     async getPredictionById(id: number | string): Promise<Prediction> {
-        const response = await apiClient.get<ApiResponse<ApiPrediction>>(`/predictions/${id}`);
-        return new Prediction(response.data);
+        const response = await apiClient.get<ApiPrediction>(`/predictions/${id}`);
+        let payload = response.data as any;
+
+        // ApiClient removes the outer API envelope. This endpoint can still
+        // return `{ prediction, userPrediction }` or an extra `{ data: ... }`.
+        // Preserve the user prediction while passing the actual prediction
+        // object (including predictionOptions and their counts) to the model.
+        while (payload?.data && !payload?.id && !payload?.prediction) {
+            payload = payload.data;
+        }
+
+        const prediction = payload?.prediction && !payload?.id
+            ? {
+                ...payload.prediction,
+                userPrediction: payload.userPrediction
+                    ?? payload.user_prediction
+                    ?? payload.prediction.userPrediction
+                    ?? payload.prediction.user_prediction,
+            }
+            : payload;
+
+        return new Prediction(prediction);
     },
 
     // Create prediction

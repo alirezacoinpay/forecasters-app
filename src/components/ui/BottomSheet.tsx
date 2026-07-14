@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { Button } from './button';
 import { useBottomSheet } from '../../hooks/useBottomSheet';
+import {useTranslation} from "../../hooks/useTranslation.ts";
 
 export interface BottomSheetOptions {
     // Three-state system (default)
@@ -71,6 +72,7 @@ export function BottomSheet({
         dir = 'rtl',
     } = options;
 
+    const t = useTranslation();
     // Use dynamic height system if provided, otherwise use three-state system
     const collapsedHeight = initialHeight ?? collapsedHeightOption ?? 50;
     // If using dynamic system, set halfExpandedHeight to midpoint between initial and max
@@ -242,12 +244,12 @@ export function BottomSheet({
                     {/* Header */}
                     {header && (
                         <div className="sticky top-0 bg-background border-b border-border px-4 pt-1 pb-2 flex items-center justify-between z-10">
-                            {showCloseButton && (
-                                <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
-                                    <ChevronDown className="w-5 h-5" />
-                                </Button>
-                            )}
-                            {header}
+                                        <div className="px-3">
+                                        <span className="text-sm font-medium">{header}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={handleClose} className="shrink-0">
+                                <ChevronDown className="w-5 h-5" />
+                            </Button>
                         </div>
                     )}
 

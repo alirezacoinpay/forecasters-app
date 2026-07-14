@@ -27,6 +27,13 @@ export class Prediction {
     predictionForwardCount: number;
     predictionLikes: number;
     isLiked: boolean;
+    userPrediction: {
+        prediction_option_id?: number;
+        predictionOptionId?: number;
+        created_at?: string;
+        createdAt?: string;
+        timePast?: string;
+    } | null;
 
     constructor(data: any) {
         // Debug logging
@@ -49,10 +56,18 @@ export class Prediction {
         this.comments = [];
         this.user = data.user ?? null;
         this.commentsCount = data.commentsCount ?? 0;
-        this.userPredictionsCount = data.userPredictionsCount ?? 0;
+        // The feed includes userPredictionsCount, but the single-prediction
+        // response currently returns only each option's server-side count.
+        // Use those counts as the total only when the aggregate is absent.
+        const optionVoteTotal = this.options.reduce(
+            (total, option) => total + (Number(option.userPredictionsCount) || 0),
+            0
+        );
+        this.userPredictionsCount = data.userPredictionsCount ?? optionVoteTotal;
         this.predictionForwardCount = data.predictionForwardCount ?? 0;
         this.predictionLikes = data.predictionLikes ?? 0;
         this.isLiked = data.isLiked ?? data.is_liked ?? false;
+        this.userPrediction = data.userPrediction ?? data.user_prediction ?? null;
 
      
     }

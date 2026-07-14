@@ -195,12 +195,7 @@ export const PredictionCard = memo(function PredictionCard({
                 <BottomSheet
                     isOpen={showShareSheet}
                     onClose={() => setShowShareSheet(false)}
-                    header={
-                        <div className="flex items-center justify-between w-full">
-                            <h3 id="share-bottom-sheet-title" className="font-semibold">{t('ui.labels.shareTitle')}</h3>
-                            <div className="w-10"></div>
-                        </div>
-                    }
+                    header={t('ui.labels.shareTitle')}
                     options={{
                         initialHeight: 30,
                         maxHeight: 50,
@@ -208,6 +203,7 @@ export const PredictionCard = memo(function PredictionCard({
                         closeThreshold: 25,
                         velocityThreshold: 0.5,
                         zIndex: 100,
+                        dir : "ltr"
                     }}
                     aria-labelledby="share-bottom-sheet-title"
                 >

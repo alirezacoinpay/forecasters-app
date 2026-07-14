@@ -52,11 +52,17 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
             {/* Share Link Section */}
             <div className="space-y-2">
                 <label className="text-sm text-muted-foreground">{t('ui.labels.postLink')}</label>
                 <div className="flex gap-2">
+                    <Input
+                        value={shareUrl}
+                        readOnly
+                        className="bg-gray-50"
+                        dir="ltr"
+                    />
                     <Button
                         variant="outline"
                         size="icon"
@@ -65,40 +71,9 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
                     >
                         <Copy className="w-4 h-4" />
                     </Button>
-                    <Input
-                        value={shareUrl}
-                        readOnly
-                        className="bg-gray-50"
-                        dir="ltr"
-                    />
                 </div>
             </div>
 
-            {/* Phone Number Section */}
-            <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">{t('ui.labels.sendToMobile')}</label>
-                <div className="flex gap-2">
-                    <Button
-                        onClick={handleSend}
-                        disabled={!phoneNumber.trim()}
-                        className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white shrink-0"
-                        size="icon"
-                    >
-                        <Send className="w-4 h-4" />
-                    </Button>
-                    <Input
-                        placeholder="09123456789"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        dir="ltr"
-                        type="tel"
-                        maxLength={11}
-                    />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                    {t('ui.labels.smsDescription')}
-                </p>
-            </div>
 
             {/* Social Media Options */}
             <div className="pt-2">

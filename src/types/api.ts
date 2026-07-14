@@ -136,6 +136,8 @@ export interface UserPrediction {
     percentage: string;
     user_id: number;
     prediction_option_id: number;
+    /** Camel-case form returned by some prediction endpoints. */
+    predictionOptionId?: number;
     created_at: string;
     updated_at: string;
     likesCount? : number;
@@ -197,6 +199,8 @@ export interface Prediction {
   } | null;
   tags: Tag[];
   predictionOptions: PredictionOption[];
+  /** The authenticated user's prediction for this prediction, when one exists. */
+  userPrediction?: UserPrediction | null;
   comments?: Comment[];
 }
 

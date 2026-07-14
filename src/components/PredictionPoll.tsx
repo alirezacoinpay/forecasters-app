@@ -1,6 +1,6 @@
 import { Prediction } from '../models/Prediction';
 import { formatCount, getDaysUntilStart } from '../utils/format';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { predictionService } from '../services/predictionService.service';
@@ -11,43 +11,21 @@ interface PredictionPollProps {
     onPredictionUpdate?: (prediction: Prediction) => void;
 }
 
-type PredictionOption = Prediction['options'][number];
+function getUserPickOptionId(prediction: Prediction): number | null {
+    const userPrediction = prediction.userPrediction;
+    const optionId = userPrediction?.predictionOptionId ?? userPrediction?.prediction_option_id;
 
-function hasUserPrediction(option: PredictionOption): boolean {
-    const value = option.myPrediction;
-    if (value == null) return false;
-    if (typeof value === 'object' && !Array.isArray(value)) {
-        return Object.keys(value as object).length > 0;
-    }
-    if (typeof value === 'string') return value.trim().length > 0;
-    return Boolean(value);
+    // Only mark an option selected when the ID supplied by the API belongs to
+    // this prediction. This prevents a stale userPrediction from styling a
+    // different option in the feed.
+    return optionId != null && prediction.options.some((option) => option.id === Number(optionId))
+        ? Number(optionId)
+        : null;
 }
 
-function getUserPickOptionId(
-    prediction: Prediction,
-    localSelectedId: string | null
-): number | null {
-    const fromApi = prediction.options.find((option) => hasUserPrediction(option));
-    if (fromApi) return fromApi.id;
-    if (localSelectedId) return Number(localSelectedId);
-    return null;
-}
-
-function buildPercentages(prediction: Prediction): Record<number, number> {
-    return Object.fromEntries(
-        prediction.options.map((option) => [option.id, prediction.getOptionPercentage(option.id)])
-    );
-}
-
-function buildOptimisticPercentages(prediction: Prediction, optionId: number): Record<number, number> {
-    const total = prediction.userPredictionsCount + 1;
-
-    return Object.fromEntries(
-        prediction.options.map((option) => {
-            const count = option.userPredictionsCount + (option.id === optionId ? 1 : 0);
-            return [option.id, total > 0 ? Math.round((count / total) * 100) : 0];
-        })
-    );
+function formatPredictionTime(prediction: Prediction): string | null {
+    const userPrediction = prediction.userPrediction;
+    return userPrediction?.created_at ?? null;
 }
 
 export function PredictionPoll({
@@ -56,57 +34,39 @@ export function PredictionPoll({
 }: PredictionPollProps) {
     const t = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedOptionId, setSelectedOptionId] = useState<string | null>(() => {
-        const picked = prediction.options.find((option) => hasUserPrediction(option));
-        return picked ? String(picked.id) : null;
-    });
-    const [percentages, setPercentages] = useState<Record<number, number>>(() => buildPercentages(prediction));
-    const [totalVotes, setTotalVotes] = useState(prediction.userPredictionsCount);
 
     const daysUntilStart = getDaysUntilStart(prediction.startsAt);
-    const userPickOptionId = getUserPickOptionId(prediction, selectedOptionId);
+    const userPickOptionId = getUserPickOptionId(prediction);
     const hasUserVoted = userPickOptionId !== null;
+    const predictionTime = formatPredictionTime(prediction);
+    const mostSelectedOptionId = prediction.options.reduce<number | null>((leadingOptionId, option) => {
+        if (option.userPredictionsCount <= 0) return leadingOptionId;
+        if (leadingOptionId === null) return option.id;
 
-    useEffect(() => {
-        const picked = prediction.options.find((option) => hasUserPrediction(option));
-        if (picked) {
-            setSelectedOptionId(String(picked.id));
-        }
-    }, [prediction.id, prediction.options]);
-
-    useEffect(() => {
-        if (isSubmitting) return;
-        setPercentages(buildPercentages(prediction));
-        setTotalVotes(prediction.userPredictionsCount);
-    }, [prediction, isSubmitting]);
+        const leadingOption = prediction.options.find((candidate) => candidate.id === leadingOptionId);
+        return option.userPredictionsCount > (leadingOption?.userPredictionsCount ?? 0)
+            ? option.id
+            : leadingOptionId;
+    }, null);
 
     const handleOptionClick = async (optionId: number) => {
-        if (isSubmitting || hasUserVoted) return;
-        if (selectedOptionId === String(optionId)) return;
+        // POST /user-predictions acts as an upsert: it creates the first
+        // prediction and updates it when the user picks a different option.
+        if (isSubmitting || optionId === userPickOptionId) return;
 
         setIsSubmitting(true);
-        setSelectedOptionId(String(optionId));
-        setPercentages(buildOptimisticPercentages(prediction, optionId));
-        setTotalVotes(prediction.userPredictionsCount + 1);
 
         try {
             await predictionService.submitPrediction({
                 prediction_option_id: optionId,
             });
 
+            // Do not manufacture counts or a selected option in the client.
+            // Re-read the prediction so percentages and userPrediction are the
+            // exact values returned by the API.
             const updatedPrediction = await predictionService.getPredictionById(prediction.id);
-            const picked = updatedPrediction.options.find((option) => hasUserPrediction(option));
-            if (picked) {
-                setSelectedOptionId(String(picked.id));
-            }
-            setPercentages(buildPercentages(updatedPrediction));
-            setTotalVotes(updatedPrediction.userPredictionsCount);
             onPredictionUpdate?.(updatedPrediction);
         } catch (error: any) {
-            setSelectedOptionId(null);
-            setPercentages(buildPercentages(prediction));
-            setTotalVotes(prediction.userPredictionsCount);
-
             const errorMessage = error?.data?.message || error?.message || t('errors.tryAgain');
             toast.error(t('errors.submitPredictionError'), {
                 description: errorMessage,
@@ -125,18 +85,19 @@ export function PredictionPoll({
         <div className="w-full" dir="ltr">
             <div className="space-y-2.5" dir="ltr">
                 {prediction.options.map((option) => {
-                    const percentage = percentages[option.id] ?? 0;
+                    const percentage = prediction.getOptionPercentage(option.id);
                     const isUserPick = option.id === userPickOptionId;
+                    const isMostSelected = !hasUserVoted && option.id === mostSelectedOptionId;
 
                     const fillClass = isUserPick
                         ? 'bg-[#F5DA8A]'
-                        : hasUserVoted
+                        : isMostSelected
                             ? 'bg-[#A8CCE8]'
                             : 'bg-[#CFD9DE]';
 
                     const percentageClass = isUserPick
                         ? 'text-[#B45309] font-semibold'
-                        : hasUserVoted
+                        : isMostSelected
                             ? 'text-[#2563EB] font-semibold'
                             : 'text-gray-900 font-normal';
 
@@ -147,7 +108,7 @@ export function PredictionPoll({
                             className={`
                                 relative w-full rounded-lg overflow-hidden bg-[#E8ECF0]
                                 h-10
-                                ${hasUserVoted ? 'cursor-default' : 'cursor-pointer active:opacity-80'}
+                                ${isUserPick ? 'cursor-default' : 'cursor-pointer active:opacity-80'}
                                 ${isSubmitting ? 'pointer-events-none' : ''}
                             `}
                         >
@@ -161,19 +122,19 @@ export function PredictionPoll({
                             />
 
                             <div className="relative flex items-center gap-2 px-3 h-full min-w-0">
-                                {isUserPick && (
-                                    <div className="w-5 h-5 rounded-full bg-[#FF6B35] flex items-center justify-center shrink-0">
-                                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                                    </div>
-                                )}
+                                {/*{isUserPick && (*/}
+                                {/*    <div className="w-5 h-5 rounded-full bg-[#FFE2D5] shrink-0 flex items-center justify-center">*/}
+                                {/*        <Check className="w-3 h-3 text-[#D95C2B]" strokeWidth={2} />*/}
+                                {/*    </div>*/}
+                                {/*)}*/}
 
                                 <span className="text-sm font-medium text-gray-900 truncate">
                                     {option.title}
                                 </span>
 
-                                {isUserPick && (
+                                {isUserPick && predictionTime && (
                                     <span className="shrink-0 px-2 py-0.5 rounded-full bg-[#FFF3CD] text-[#B8860B] text-[10px] font-medium leading-none">
-                                        {t('ui.labels.yourPick')}
+                                        {predictionTime}
                                     </span>
                                 )}
 
@@ -187,7 +148,7 @@ export function PredictionPoll({
             </div>
 
             <div className="flex items-center gap-1.5 mt-2.5 text-xs text-gray-400">
-                <span>{formatCount(totalVotes)} votes</span>
+                <span>{formatCount(prediction.userPredictionsCount)} votes</span>
                 <span>·</span>
                 <span>{daysUntilStart || 'Final results'}</span>
             </div>
