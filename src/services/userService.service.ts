@@ -33,8 +33,17 @@ export const userService = {
      * ```
      */
     async getCurrentUser(): Promise<User> {
-        const response = await apiClient.get<ApiResponse<{ user: User }>>('/me');
-        return response.data.user;
+        const response = await apiClient.get<ApiResponse<{ user: any }>>('/me');
+        const raw = response.data.data.user;
+        return {
+            ...raw,
+            id: raw.id?.toString() ?? raw._id?.toString() ?? '',
+            name: raw.name ?? raw.username ?? '',
+            avatar: raw.avatar || undefined,
+            mobile: raw.mobile ?? undefined,
+            email: raw.email ?? undefined,
+            userPredictionsCount: raw.userPredictionsCount ?? 0,
+        };
     },
 
     /**
@@ -87,11 +96,21 @@ export const userService = {
         const formData = new FormData();
         if (data.username) formData.append('username', data.username);
         if (data.avatar) formData.append('avatar', data.avatar);
+        formData.append('_method', 'put');
 
-        const response = await apiClient.put<ApiResponse<User>>('/user-profiles', formData, {
+        const response = await apiClient.post<ApiResponse<{ user: any }>>('/user-profiles', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
-        return response.data;
+        const raw = response.data.data?.user ?? response.data.data ?? response.data;
+        return {
+            ...raw,
+            id: raw.id?.toString() ?? raw._id?.toString() ?? '',
+            name: raw.name ?? raw.username ?? '',
+            avatar: raw.avatar || undefined,
+            mobile: raw.mobile ?? undefined,
+            email: raw.email ?? undefined,
+            userPredictionsCount: raw.userPredictionsCount ?? 0,
+        };
     },
 
     // Delete user

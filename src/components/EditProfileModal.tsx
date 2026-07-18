@@ -115,7 +115,6 @@ export function EditProfileModal({
         ref={modalRef}
         className="bg-background rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
-        dir="rtl"
         tabIndex={-1}
       >
         {/* Header */}
@@ -173,7 +172,6 @@ export function EditProfileModal({
                 }
               }}
               className={errors.username ? 'border-destructive' : ''}
-              dir="rtl"
               aria-invalid={!!errors.username}
               aria-describedby={errors.username ? 'username-error' : undefined}
               disabled={isSubmitting}
