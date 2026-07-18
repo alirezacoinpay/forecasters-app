@@ -246,7 +246,7 @@ export default function App() {
                             ))}
                         </div>
                     }>
-                        <ProfileView />
+                        <ProfileView user={user} />
                     </Suspense>
                 )}
             </main>

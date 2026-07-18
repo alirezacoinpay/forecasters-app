@@ -55,6 +55,7 @@ export const en = {
       score: 'Score',
       achievements: 'Achievements',
       recentActivity: 'Recent Activity',
+      noActivity: 'No activity yet',
       professionalPredictor: 'Professional Predictor',
       highAccuracy: 'High Accuracy',
       activeUserBadge: 'Active User',

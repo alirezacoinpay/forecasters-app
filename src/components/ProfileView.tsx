@@ -11,13 +11,17 @@ import { MobileVerificationModal } from './MobileVerificationModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { UserPredictionItem } from './UserPredictionItem';
 
+import { User } from "../types/api.ts";
+
 interface ProfileViewProps {
+  user?: User | null;
   onPredictionClick?: (predictionId: number) => void;
 }
 
-export function ProfileView({ onPredictionClick }: ProfileViewProps = {}) {
+export function ProfileView({ user, onPredictionClick }: ProfileViewProps = {}) {
   const t = useTranslation();
-  const { profile, stats, loading, updateProfile, refresh } = useProfile();
+  const { profile: fetchedProfile, stats, loading, updateProfile, refresh } = useProfile();
+  const profile = fetchedProfile ?? user;
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showMobileVerification, setShowMobileVerification] = useState(false);
@@ -76,11 +80,8 @@ export function ProfileView({ onPredictionClick }: ProfileViewProps = {}) {
               <TrendingUp className="w-10 h-10 text-white" />
             )}
           </div>
-          <div className="flex-1">
+            <div className="flex-1">
             <h2 className="mb-1">{profile?.name || t('ui.labels.user')}</h2>
-            <p className="text-sm text-muted-foreground mb-3">
-              {t('ui.labels.activeUser')}
-            </p>
             
             {/* Email and Mobile Verification Status */}
             <div className="flex flex-wrap gap-2 mb-3">

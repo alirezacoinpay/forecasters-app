@@ -33,8 +33,20 @@ export const userService = {
      * ```
      */
     async getCurrentUser(): Promise<User> {
-        const response = await apiClient.get<ApiResponse<{ user: any }>>('/me');
-        const raw = response.data.data.user;
+        const response = await apiClient.get<any>('/me');
+        // The /me endpoint returns { success, data: { user }, message }
+        // but be defensive about the actual shape.
+        const payload = response?.data ?? response;
+        const raw =
+            payload?.user ??
+            payload?.data?.user ??
+            payload?.data ??
+            payload;
+
+        if (!raw) {
+            throw new Error('Invalid /me response');
+        }
+
         return {
             ...raw,
             id: raw.id?.toString() ?? raw._id?.toString() ?? '',
@@ -98,10 +110,15 @@ export const userService = {
         if (data.avatar) formData.append('avatar', data.avatar);
         formData.append('_method', 'put');
 
-        const response = await apiClient.post<ApiResponse<{ user: any }>>('/user-profiles', formData, {
+        const response = await apiClient.post<any>('/user-profiles', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
-        const raw = response.data.data?.user ?? response.data.data ?? response.data;
+        const payload = response?.data ?? response;
+        const raw =
+            payload?.user ??
+            payload?.data?.user ??
+            payload?.data ??
+            payload;
         return {
             ...raw,
             id: raw.id?.toString() ?? raw._id?.toString() ?? '',
