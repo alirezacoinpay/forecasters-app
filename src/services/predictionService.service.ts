@@ -20,6 +20,26 @@ export const predictionService = {
         );
     },
 
+    // Get current user's prediction activity (paginated)
+    async getUserPredictions(params?: { page?: number; paginate?: number }): Promise<{
+        items: any[];
+        meta: { current_page: number; per_page: number; last_page: number };
+    }> {
+        const response = await apiClient.get<any>('/user-predictions', { params });
+        const payload = response?.data ?? response;
+        const inner = payload?.data ?? payload;
+        const items = Array.isArray(inner?.data) ? inner.data : [];
+        const meta = inner?.meta ?? inner ?? {};
+        return {
+            items,
+            meta: {
+                current_page: meta.current_page ?? params?.page ?? 1,
+                per_page: meta.per_page ?? params?.paginate ?? 10,
+                last_page: meta.last_page ?? 1,
+            },
+        };
+    },
+
     // Get prediction by ID
     async getPredictionById(id: number | string): Promise<Prediction> {
         const response = await apiClient.get<ApiPrediction>(`/predictions/${id}`);

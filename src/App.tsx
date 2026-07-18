@@ -256,6 +256,7 @@ export default function App() {
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
                 onAddPrediction={() => setShowAddPrediction(true)}
+                user={user}
             />
 
             {selectedPrediction && (

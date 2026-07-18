@@ -9,6 +9,7 @@ import { Input } from './ui/input';
 import { predictionService } from '../services/predictionService.service';
 import { Topic } from '../types/api';
 import { useTranslation } from '../hooks/useTranslation';
+import { useAutoAuth } from '../hooks/useAutoAuth';
 import { formatDateTime } from '../utils/format'
 import { useSwipeable } from 'react-swipeable';
 import { motion, useAnimation } from "framer-motion";
@@ -22,6 +23,7 @@ interface CreatePredictionPageProps {
 
 export function CreatePredictionPage({ onClose, selectedTopicId, topics }: CreatePredictionPageProps) {
   const t = useTranslation();
+  const { user } = useAutoAuth();
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [options, setOptions] = useState(['', '']);
@@ -184,9 +186,17 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics }: Creat
       <div className="px-4 py-4 ">
 
           <div className="flex self-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#FF6B35] flex items-center justify-center">
-                  <TrendingUp className="w-3 h-3 text-white" />
-              </div>
+              {user?.avatar ? (
+                  <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover"
+                  />
+              ) : (
+                  <div className="w-8 h-8 rounded-full bg-[#FF6B35] flex items-center justify-center">
+                      <TrendingUp className="w-3 h-3 text-white" />
+                  </div>
+              )}
               {/* Title Input - No background */}
               <div className="mt-1 w-full">
                   <Textarea

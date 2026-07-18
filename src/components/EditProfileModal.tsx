@@ -9,11 +9,7 @@ interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUsername?: string;
-  currentEmail?: string;
-  currentMobile?: string;
   currentAvatar?: string;
-  emailVerified?: boolean;
-  mobileVerified?: boolean;
   onSave: (data: { name?: string; email?: string; mobile?: string; avatar?: File }) => Promise<void>;
 }
 
@@ -21,11 +17,7 @@ export function EditProfileModal({
   isOpen,
   onClose,
   currentUsername,
-  currentEmail,
-  currentMobile,
   currentAvatar,
-  emailVerified,
-  mobileVerified,
   onSave,
 }: EditProfileModalProps) {
   const t = useTranslation();

@@ -1,13 +1,15 @@
-import { Home, PlusCircle, User } from 'lucide-react';
+import { Home, PlusCircle, TrendingUp } from 'lucide-react';
+import { User } from "../types/api.ts";
 
 interface BottomNavProps {
   isVisible: boolean;
   activeTab: 'feed' | 'profile';
   onTabChange: (tab: 'feed' | 'profile') => void;
   onAddPrediction: () => void;
+  user?: User | null;
 }
 
-export function BottomNav({ isVisible, activeTab, onTabChange, onAddPrediction }: BottomNavProps) {
+export function BottomNav({ isVisible, activeTab, onTabChange, onAddPrediction, user }: BottomNavProps) {
   return (
     <nav
       className={`fixed bottom-0 z-50 bg-background border-t border-border transition-all duration-300 ease-in-out ${
@@ -22,39 +24,38 @@ export function BottomNav({ isVisible, activeTab, onTabChange, onAddPrediction }
       }}
     >
       <div className="flex items-center justify-around px-4 py-1">
-        {/* Profile Tab */}
-        <button
-          onClick={() => onTabChange('profile')}
-          className={`flex flex-col items-center gap-1 px-6 py-2 rounded-lg transition-colors ${
-            activeTab === 'profile'
-              ? 'text-[#FF6B35]'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <User className="w-6 h-6" />
-        </button>
+          {/* Feed Tab - Right */}
+          <button
+              onClick={() => onTabChange('feed')}
+              className={`flex flex-col items-center gap-1 px-6 py-1 rounded-lg transition-colors text-muted-foreground`}
+          >
+              <Home className="w-6 h-6" />
+          </button>
+          {/* Add Prediction Button - Middle */}
+          <button
+            onClick={onAddPrediction}
+            className="flex flex-col items-center gap-1 px-6 py-1 rounded-lg transition-colors"
+          >
+            <PlusCircle className="w-6 h-6" />
+          </button>
+          {/* Profile Tab - Left */}
+          <button
+              onClick={() => onTabChange('profile')}
+              className={`flex flex-col items-center gap-1 px-6 py-1 rounded-lg transition-colors text-muted-foreground `}
+          >
+              {user?.avatar ? (
+                  <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-6 h-6 rounded-full object-cover"
+                  />
+              ) : (
+                  <div className="w-6 h-6 rounded-full bg-[#FF6B35] flex items-center justify-center">
+                      <TrendingUp className="w-3 h-3 text-white" />
+                  </div>
+              )}
+          </button>
 
-        {/* Add Prediction Button */}
-        <button
-          onClick={onAddPrediction}
-          className={`flex flex-col items-center gap-1 px-6 py-2 rounded-lg transition-colors ${
-            'text-[#FF6B35]'
-          }`}
-        >
-          <PlusCircle className="w-6 h-6" />
-        </button>
-
-        {/* Feed Tab */}
-        <button
-          onClick={() => onTabChange('feed')}
-          className={`flex flex-col items-center gap-1 px-6 py-2 rounded-lg transition-colors ${
-            activeTab === 'feed'
-              ? 'text-[#FF6B35]'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Home className="w-6 h-6" />
-        </button>
       </div>
     </nav>
   );
