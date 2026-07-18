@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Search, X, Clock } from 'lucide-react';
+import { ArrowLeft, X, Clock } from 'lucide-react';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Prediction } from '../models/Prediction';
-import { PredictionCard } from './PredictionCard';
 import { PredictionCardSkeleton } from './PredictionCardSkeleton';
 import { usePredictionFeed } from '../hooks/predictions/usePredictionFeed.ts.tsx';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
@@ -13,6 +11,7 @@ import { SearchHistoryItem, Tag, Topic } from '../types/api';
 import { useTranslation } from '../hooks/useTranslation';
 import {PredictionCardSummary} from "./PredictionCardSummary.tsx";
 import {tagService} from "../services/tagService.service.ts";
+import LogoSearch from './LogoSearch';
 
 interface SearchPageProps {
     onClose: () => void;
@@ -225,14 +224,13 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              ref={inputRef}
-              placeholder={t('ui.placeholders.search')}
+            <LogoSearch
+              inputMode
+              placeholder="Find in Forecasters"
               value={searchQuery}
+              onChange={handleSearch}
               onKeyDown={handleKeyDown}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 pr-10"
+              inputRef={inputRef}
             />
               {showTagDropdown && (
                   <div
@@ -260,7 +258,7 @@ export function SearchPage({ onClose, onPredictionClick, selectedTag, onClearSel
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                className="absolute right-12 top-1/2 transform -translate-y-1/2 h-6 w-6"
                 onClick={handleClearSearch}
               >
                 <X className="w-4 h-4" />

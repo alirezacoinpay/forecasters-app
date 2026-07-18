@@ -3,7 +3,7 @@ import {
     MessageCircle,
     MoreHorizontal,
     TrendingUp,
-    Heart,
+    Heart, CalendarDays,
 } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -18,6 +18,7 @@ import { predictionService } from '../services/predictionService.service';
 import { activityService } from '../services/activityService.service';
 import { toast } from 'sonner';
 import { useTranslation } from '../hooks/useTranslation';
+import {PredictionPoll} from "./PredictionPoll.tsx";
 
 interface PredictionCardProps {
   prediction: Prediction;
@@ -91,7 +92,7 @@ export const PredictionCardSummary = memo(function PredictionCard({ prediction, 
         }
         onClick?.();
       }}
-      dir="rtl"
+      dir="ltr"
       role="button"
       tabIndex={0}
       aria-label={`${t('ui.labels.predictions')}: ${prediction.title}`}
@@ -102,51 +103,44 @@ export const PredictionCardSummary = memo(function PredictionCard({ prediction, 
         }
       }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 rounded-full"
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation();
-            // TODO: Add menu functionality
-          }}
-        >
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{prediction.timePast}</span>
-          <span className="text-sm text-muted-foreground">•</span>
-          <span className="text-sm">{prediction.user?.username || t('ui.anonymous')}</span>
-          <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
-            <TrendingUp className="w-3 h-3 text-white" />
-          </div>
+        {/* Header */}
+        <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+                {prediction.user?.avatar ? (
+                    <img
+                        src={prediction.user.avatar}
+                        alt={prediction.user.username}
+                        className="w-9 h-9 rounded-full object-cover"
+                    />
+                ) : (
+                    <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
+                        <TrendingUp className="w-3 h-3 text-white" />
+                    </div>
+                )}
+                <span className="text-sm font-500">{prediction.user?.username || t('ui.anonymous')}</span>
+            </div>
+            <div className="flex items-center text-xs gap-2 text-gray-400 self-center">
+                <CalendarDays className="w-4 h-4" />
+                <span>{prediction.created_at}</span>
+            </div>
+
+            {/*<Button*/}
+            {/*    variant="ghost"*/}
+            {/*    size="icon"*/}
+            {/*    className="h-8 w-8 rounded-full"*/}
+            {/*    onClick={(e: React.MouseEvent) => {*/}
+            {/*        e.stopPropagation();*/}
+            {/*        // TODO: Add menu functionality*/}
+            {/*    }}*/}
+            {/*>*/}
+            {/*    <MoreHorizontal className="w-4 h-4" />*/}
+            {/*</Button>*/}
         </div>
-      </div>
 
-      {/* Prediction */}
-      <div className="space-y-2">
-        <p className="text-sm font-semibold leading-relaxed">{prediction.title}</p>
-      </div>
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-2">
-        {prediction.tags.map((tag) => (
-          <Badge
-            key={tag.id}
-            variant="outline"
-            style={{ backgroundColor: tag.color, borderColor: tag.color, color: "#fff" }}
-            className="rounded-md h-6 cursor-pointer"
-            onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
-              onTagClick?.(tag);
-            }}
-          >
-            {tag.title}
-          </Badge>
-        ))}
-      </div>
+        {/* Prediction */}
+        <div className="space-y-2">
+            <p className="text-sm font-500 leading-relaxed">{prediction.title}</p>
+        </div>
 
     </div>
   );

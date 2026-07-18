@@ -198,18 +198,16 @@ export default function App() {
                         }}
                         onTagSelected={handleSearchTagSelected}
                         selectedTag={searchPageTag}
-                        onPredictionClick={setSelectedPrediction}
+                        onPredictionClick={(prediction) => {
+                            setShowSearchPage(false);
+                            setSearchPageTag(undefined);
+                            setDeepLinkPredictionId(prediction.id);
+                            setIsDeepLinkLoading(true);
+                            setSelectedTopicId(DEFAULT_TOPIC_ID);
+                        }}
                         onClearSelectedTag={() => setSearchPageTag(undefined)}
                     />
                 </Suspense>
-                {selectedPrediction && (
-                    <Suspense fallback={null}>
-                        <CommentsBottomSheet
-                            prediction={selectedPrediction}
-                            onClose={() => setSelectedPrediction(null)}
-                        />
-                    </Suspense>
-                )}
             </>
         );
     }

@@ -69,6 +69,7 @@ export const en = {
     },
     placeholders: {
       search: 'Search',
+      findInForecasters: 'Search',
       enterTitle: 'Enter prediction title',
       enterDescription: 'Description (optional)',
       enterOption: 'Enter option',

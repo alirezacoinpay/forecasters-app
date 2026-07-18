@@ -48,7 +48,7 @@ export function ProfileView({ user, onPredictionClick }: ProfileViewProps = {}) 
   });
 
   return (
-    <div className="space-y-6 pb-24" dir="rtl">
+    <div className="space-y-6 pb-24">
       {/* Profile Header */}
       <div className="bg-white border-b border-border p-6">
         <div className="flex items-start gap-4">
@@ -77,7 +77,7 @@ export function ProfileView({ user, onPredictionClick }: ProfileViewProps = {}) 
       <div className="bg-white border-b border-border p-6">
         <div className="grid grid-cols-1 gap-4 text-center">
           <div>
-            <div className="text-2xl text-[#FF6B35] mb-1">{items.length}</div>
+            <div className="text-2xl text-[#FF6B35] mb-1">{user.userPredictionsCount}</div>
             <div className="text-xs text-muted-foreground">{t('ui.labels.predictions')}</div>
           </div>
         </div>
