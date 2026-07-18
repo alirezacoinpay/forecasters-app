@@ -207,6 +207,7 @@ export function ProfileView({ onPredictionClick }: ProfileViewProps = {}) {
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         currentUsername={profile?.name}
+        currentAvatar={profile?.avatar}
         currentEmail={profile?.email}
         currentMobile={profile?.mobile}
         emailVerified={!!profile?.email_verified_at}

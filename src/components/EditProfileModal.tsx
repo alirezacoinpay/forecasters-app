@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Mail, Phone, CheckCircle2 } from 'lucide-react';
+import { X, TrendingUp, Camera } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { toast } from 'sonner';
@@ -11,9 +11,10 @@ interface EditProfileModalProps {
   currentUsername?: string;
   currentEmail?: string;
   currentMobile?: string;
+  currentAvatar?: string;
   emailVerified?: boolean;
   mobileVerified?: boolean;
-  onSave: (data: { name?: string; email?: string; mobile?: string }) => Promise<void>;
+  onSave: (data: { name?: string; email?: string; mobile?: string; avatar?: File }) => Promise<void>;
 }
 
 export function EditProfileModal({
@@ -22,30 +23,43 @@ export function EditProfileModal({
   currentUsername,
   currentEmail,
   currentMobile,
+  currentAvatar,
   emailVerified,
   mobileVerified,
   onSave,
 }: EditProfileModalProps) {
   const t = useTranslation();
   const [username, setUsername] = useState(currentUsername || '');
-  const [email, setEmail] = useState(currentEmail || '');
-  const [mobile, setMobile] = useState(currentMobile || '');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(currentAvatar || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setUsername(currentUsername || '');
-      setEmail(currentEmail || '');
-      setMobile(currentMobile || '');
+      setAvatarFile(null);
+      setAvatarPreview(currentAvatar || null);
       setErrors({});
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen, currentUsername, currentEmail, currentMobile]);
+  }, [isOpen, currentUsername, currentAvatar]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error(t('errors.invalidImage'));
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -54,14 +68,6 @@ export function EditProfileModal({
       newErrors.username = t('errors.enterUsername');
     } else if (username.trim().length < 3) {
       newErrors.username = t('errors.usernameMinLength');
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = t('errors.invalidEmail');
-    }
-
-    if (mobile && !/^\+?[1-9]\d{1,14}$/.test(mobile.replace(/\s/g, ''))) {
-      newErrors.mobile = t('errors.invalidMobile');
     }
 
     setErrors(newErrors);
@@ -82,8 +88,7 @@ export function EditProfileModal({
     try {
       await onSave({
         name: username.trim() !== currentUsername ? username.trim() : undefined,
-        email: email.trim() !== currentEmail ? email.trim() : undefined,
-        mobile: mobile.trim() !== currentMobile ? mobile.trim() : undefined,
+        avatar: avatarFile || undefined,
       });
 
       toast.dismiss(loadingToast);
@@ -124,6 +129,36 @@ export function EditProfileModal({
 
         {/* Content */}
         <div className="p-6 space-y-4">
+          {/* Avatar */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-20 h-20 rounded-full bg-[#FF6B35] flex items-center justify-center overflow-hidden shrink-0">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <TrendingUp className="w-10 h-10 text-white" />
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+              disabled={isSubmitting}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSubmitting}
+            >
+              <Camera className="w-4 h-4 mr-1" />
+              {t('ui.labels.changeAvatar')}
+            </Button>
+          </div>
+
           {/* Username Input */}
           <div className="space-y-2">
             <label className="text-sm">{t('ui.labels.username')}</label>
@@ -146,74 +181,6 @@ export function EditProfileModal({
             {errors.username && (
               <p id="username-error" className="text-xs text-destructive" role="alert">
                 {errors.username}
-              </p>
-            )}
-          </div>
-
-          {/* Email Input */}
-          <div className="space-y-2">
-            <label className="text-sm flex items-center gap-2">
-              {t('ui.labels.emailOptional')}
-              {emailVerified && email && (
-                <CheckCircle2 className="w-4 h-4 text-green-500" title={t('ui.labels.verified')} />
-              )}
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="email"
-                placeholder={t('ui.placeholders.enterEmail')}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errors.email) {
-                    setErrors((prev) => ({ ...prev, email: '' }));
-                  }
-                }}
-                className={`${errors.email ? 'border-destructive' : ''} ${email ? 'pr-10' : ''}`}
-                dir="ltr"
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'email-error' : undefined}
-                disabled={isSubmitting}
-              />
-            </div>
-            {errors.email && (
-              <p id="email-error" className="text-xs text-destructive" role="alert">
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Mobile Input */}
-          <div className="space-y-2">
-            <label className="text-sm flex items-center gap-2">
-              {t('ui.labels.mobileOptional')}
-              {mobileVerified && mobile && (
-                <CheckCircle2 className="w-4 h-4 text-green-500" title={t('ui.labels.verified')} />
-              )}
-            </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="tel"
-                placeholder={t('ui.placeholders.enterMobile')}
-                value={mobile}
-                onChange={(e) => {
-                  setMobile(e.target.value);
-                  if (errors.mobile) {
-                    setErrors((prev) => ({ ...prev, mobile: '' }));
-                  }
-                }}
-                className={`${errors.mobile ? 'border-destructive' : ''} ${mobile ? 'pr-10' : ''}`}
-                dir="ltr"
-                aria-invalid={!!errors.mobile}
-                aria-describedby={errors.mobile ? 'mobile-error' : undefined}
-                disabled={isSubmitting}
-              />
-            </div>
-            {errors.mobile && (
-              <p id="mobile-error" className="text-xs text-destructive" role="alert">
-                {errors.mobile}
               </p>
             )}
           </div>

@@ -52,10 +52,13 @@ export function useProfile(userId?: string) {
     loadProfile();
   }, [loadProfile]);
 
-  const updateProfile = useCallback(async (data: { name?: string; email?: string; mobile?: string }) => {
+  const updateProfile = useCallback(async (data: { name?: string; email?: string; mobile?: string; avatar?: File }) => {
     try {
       setLoading(true);
-      const updatedUser = await userService.editProfile(data);
+      const updatedUser = await userService.updateProfile({
+        username: data.name,
+        avatar: data.avatar,
+      });
       setProfile(updatedUser);
       toast.success(t('success.profileUpdated'), {
         duration: 2000,

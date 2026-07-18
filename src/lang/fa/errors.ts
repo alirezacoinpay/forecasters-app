@@ -32,6 +32,7 @@ export const fa = {
     selectTopic: 'لطفاً یک موضوع انتخاب کنید',
     enterUsername: 'لطفاً نام کاربری را وارد کنید',
     usernameMinLength: 'نام کاربری باید حداقل ۳ کاراکتر باشد',
+    invalidImage: 'لطفاً یک فایل تصویری معتبر انتخاب کنید',
     invalidEmail: 'ایمیل معتبر نیست',
     loginAgain: 'لطفاً دوباره وارد شوید',
     notAuthorized: 'شما مجاز به انجام این عملیات نیستید',

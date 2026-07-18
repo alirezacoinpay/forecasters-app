@@ -76,6 +76,24 @@ export const userService = {
         return response.data;
     },
 
+    /**
+     * Update current user's avatar and username via /user-profile (PUT)
+     *
+     * Only the avatar and username are sent. Avatar is sent as multipart/form-data.
+     */
+    async updateProfile(
+        data: { username?: string; avatar?: File }
+    ): Promise<User> {
+        const formData = new FormData();
+        if (data.username) formData.append('username', data.username);
+        if (data.avatar) formData.append('avatar', data.avatar);
+
+        const response = await apiClient.put<ApiResponse<User>>('/user-profiles', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
+
     // Delete user
     async deleteUser(id: string): Promise<ApiResponse<null>> {
         const response = await apiClient.delete<ApiResponse<null>>(`/users/${id}`);

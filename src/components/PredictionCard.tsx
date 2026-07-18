@@ -82,9 +82,17 @@ export const PredictionCard = memo(function PredictionCard({
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
-                        <TrendingUp className="w-3 h-3 text-white" />
-                    </div>
+                    {prediction.user?.avatar ? (
+                        <img
+                            src={prediction.user.avatar}
+                            alt={prediction.user.username}
+                            className="w-9 h-9 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-9 h-9 rounded-full bg-[#FF6B35] flex items-center justify-center">
+                            <TrendingUp className="w-3 h-3 text-white" />
+                        </div>
+                    )}
                     <span className="text-sm font-500">{prediction.user?.username || t('ui.anonymous')}</span>
                 </div>
                 <div className="flex items-center text-xs gap-2 text-gray-400 self-center">

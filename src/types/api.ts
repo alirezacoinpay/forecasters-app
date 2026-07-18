@@ -174,9 +174,11 @@ export interface UserListParams {
 
 export interface UpdateUserData {
     name?: string;
+    username?: string;
     email?: string;
     mobile?: string;
     role?: string;
+    avatar?: File;
 }
 
 export interface Prediction {

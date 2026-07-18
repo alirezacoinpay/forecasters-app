@@ -36,6 +36,7 @@ export const en = {
       profile: 'Profile',
       feed: 'Feed',
       editProfile: 'Edit Profile',
+      changeAvatar: 'Change Avatar',
       shareLink: 'Post Link',
       sendToMobile: 'Send to Mobile Number',
       shareSocial: 'Share on Social Media',

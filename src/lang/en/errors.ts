@@ -32,6 +32,7 @@ export const en = {
     selectTopic: 'Please select a topic',
     enterUsername: 'Please enter username',
     usernameMinLength: 'Username must be at least 3 characters',
+    invalidImage: 'Please select a valid image file',
     invalidEmail: 'Invalid email',
     loginAgain: 'Please login again',
     notAuthorized: 'You are not authorized to perform this operation',

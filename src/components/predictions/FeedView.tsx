@@ -140,16 +140,7 @@ export function FeedView({searchQuery, topicId, predictionId, onDeepLinkLoaded, 
                     <div className="w-5 h-5 border-2 border-[#FF6B35] border-t-transparent rounded-full animate-spin"></div>
                 </div>
             )}
-
-            {/* Debug info in dev mode */}
-            {import.meta.env.DEV && (
-                <div className="fixed bottom-20 right-4 bg-black/80 text-white text-xs p-2 rounded z-50">
-                    <div>Loading: {loading ? 'Yes' : 'No'}</div>
-                    <div>Predictions: {predictions.length}</div>
-                    <div>Has Data: {predictions.length > 0 ? 'Yes' : 'No'}</div>
-                </div>
-            )}
-
+            
             <div className="relative w-full">
                 {loading && predictions.length === 0 ? (
                     // Show skeletons on initial load

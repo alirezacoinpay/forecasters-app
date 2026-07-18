@@ -21,7 +21,7 @@ export class Prediction {
         myPrediction?: unknown;
     }>;
     comments: Comment[];
-    user: { username: string; mobile: string } | null;
+    user: { username: string; mobile: string; avatar?: string } | null;
     commentsCount: number;
     userPredictionsCount: number;
     predictionForwardCount: number;

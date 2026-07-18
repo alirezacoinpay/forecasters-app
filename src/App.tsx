@@ -170,7 +170,10 @@ export default function App() {
                 </div>
             }>
                 <CreatePredictionPage
-                    onClose={() => setShowAddPrediction(false)}
+                    onClose={() => {
+                        setShowAddPrediction(false);
+                        setActiveTab('feed');
+                    }}
                     selectedTopicId={selectedTopicId}
                     topics={topics}
                     onTopicChange={setSelectedTopicId}

@@ -115,12 +115,9 @@ export function CreatePredictionPage({ onClose, selectedTopicId, topics }: Creat
       setSelectedTags([]);
       setSelectedDays(1);
 
-      // Close page
-      setTimeout(() => {
-        onClose();
-        // Trigger feed refresh
-        window.dispatchEvent(new Event('refresh-feed'));
-      }, 500);
+      // Close page and trigger feed refresh
+      onClose();
+      window.dispatchEvent(new Event('refresh-feed'));
     } catch (error) {
 
     } finally {

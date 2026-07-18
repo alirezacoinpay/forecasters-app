@@ -36,6 +36,7 @@ export const fa = {
       profile: 'پروفایل',
       feed: 'خبرخوان',
       editProfile: 'ویرایش پروفایل',
+      changeAvatar: 'تغییر آواتار',
       shareLink: 'لینک پست',
       sendToMobile: 'ارسال به شماره موبایل',
       shareSocial: 'اشتراک‌گذاری در شبکه‌های اجتماعی',
