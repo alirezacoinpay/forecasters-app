@@ -53,10 +53,7 @@ export const predictionService = {
         if (data.text) {
             formData.append('text', data.text);
         }
-        formData.append('topic_id', String(data.topic_id));
-        if (data.category_id) {
-            formData.append('category_id', String(data.category_id));
-        }
+
         if (data.starts_at) {
             formData.append('starts_at', data.starts_at);
         }

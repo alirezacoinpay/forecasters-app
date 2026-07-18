@@ -68,6 +68,8 @@ export const en = {
       enterTitle: 'Enter prediction title',
       enterDescription: 'Description (optional)',
       enterOption: 'Enter option',
+      choice1: 'Choice 1',
+      choice2: 'Choice 2',
       enterComment: 'Write your comment...',
       enterUsername: 'Enter username',
       enterEmail: 'Enter email',

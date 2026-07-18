@@ -228,7 +228,6 @@ export interface PredictionListParams {
 export interface CreatePredictionData {
     title: string;
     text?: string;
-    topic_id: number;
     category_id?: number;
     options: string[];
     tags?: string[];
