@@ -56,6 +56,8 @@ export const fa = {
       achievements: 'دستاورد‌ها',
       recentActivity: 'فعالیت اخیر',
       noActivity: 'فعالیتی وجود ندارد',
+      activityTab: 'فعالیت',
+      picksTab: 'پیش‌بینی‌های من',
       professionalPredictor: 'پیش‌بینی‌کننده حرفه‌ای',
       highAccuracy: 'دقت بالا',
       activeUserBadge: 'کاربر فعال',

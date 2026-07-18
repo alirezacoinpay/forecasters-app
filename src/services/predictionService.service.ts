@@ -22,14 +22,30 @@ export const predictionService = {
 
     // Get current user's prediction activity (paginated)
     async getUserPredictions(params?: { page?: number; paginate?: number }): Promise<{
-        items: any[];
+        items: Prediction[];
         meta: { current_page: number; per_page: number; last_page: number };
     }> {
         const response = await apiClient.get<any>('/user-predictions', { params });
         const payload = response?.data ?? response;
         const inner = payload?.data ?? payload;
-        const items = Array.isArray(inner?.data) ? inner.data : [];
+        const rawItems = Array.isArray(inner?.data) ? inner.data : [];
         const meta = inner?.meta ?? inner ?? {};
+
+        // Each record contains a nested `prediction` object. Build a Prediction
+        // model and attach the user's chosen option (userPrediction).
+        const items = rawItems.map((record: any) => {
+            const predictionData = record.prediction ?? record;
+            const built = new Prediction({
+                ...predictionData,
+                userPrediction: {
+                    prediction_option_id: record.prediction_option_id,
+                    created_at: record.created_at,
+                    timePast: record.timePast,
+                },
+            });
+            return built;
+        });
+
         return {
             items,
             meta: {

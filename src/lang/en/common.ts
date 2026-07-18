@@ -56,6 +56,8 @@ export const en = {
       achievements: 'Achievements',
       recentActivity: 'Recent Activity',
       noActivity: 'No activity yet',
+      activityTab: 'Activity',
+      picksTab: 'My Picks',
       professionalPredictor: 'Professional Predictor',
       highAccuracy: 'High Accuracy',
       activeUserBadge: 'Active User',
