@@ -9,6 +9,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTopics, DEFAULT_TOPIC_ID } from './hooks/useTopics';
 import { useAutoAuth } from './hooks/useAutoAuth';
 import { Tag } from "./types/api.ts";
+import {useTranslation} from "./hooks/useTranslation.ts";
 
 // Code splitting: Lazy load heavy components
 const CommentsBottomSheet = lazy(() => import('./components/CommentsBottomSheet').then(m => ({ default: m.CommentsBottomSheet })));
@@ -37,7 +38,7 @@ const parseInitialUrl = (): number | undefined => {
 
 export default function App() {
     const { user, loading: authLoading, authenticated } = useAutoAuth();
-
+    const t = useTranslation();
     const initialDeepLinkPredictionId = useRef<number | undefined>(parseInitialUrl());
 
     const [selectedPrediction, setSelectedPrediction] = useState<Prediction | null>(null);
@@ -166,7 +167,7 @@ export default function App() {
         return (
             <Suspense fallback={
                 <div className="min-h-screen bg-background flex items-center justify-center">
-                    <div className="text-muted-foreground">در حال بارگذاری...</div>
+                    <div className="text-muted-foreground">{ t('loading.loading')}</div>
                 </div>
             }>
                 <CreatePredictionPage
