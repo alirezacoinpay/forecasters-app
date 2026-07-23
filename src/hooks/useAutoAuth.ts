@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService.service';
 import { User } from '../types/api';
 import { setAuthStatus, clearTemporarySessionId } from '../utils/sessionStorage';
+import { isTelegramMiniApp, getTelegramInitData } from '../utils/telegram';
 
 interface UseAutoAuthReturn {
     user: User | null;
@@ -30,7 +31,20 @@ export function useAutoAuth(): UseAutoAuthReturn {
             setLoading(true);
             setError(null);
 
-            // First, check if we have a valid cookie by calling /me
+            // Check if we're in Telegram Mini App
+            if (isTelegramMiniApp()) {
+                const initData = getTelegramInitData();
+                if (initData) {
+                    const telegramUser = await authService.telegramLogin(initData);
+                    setUser(telegramUser);
+                    setAuthenticated(true);
+                    setAuthStatus(true);
+                    setRetryCount(0);
+                    return;
+                }
+            }
+
+            // Original web auth flow
             const currentUser = await authService.checkAuth();
 
             if (currentUser) {
