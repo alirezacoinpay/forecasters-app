@@ -9,10 +9,12 @@
 
   // Initialize Telegram SDK if in Telegram Mini App
   if (isTelegramMiniApp()) {
+    console.log('[Telegram] Mini App detected, initializing SDK...');
     import("@telegram-apps/sdk").then(({ init, ready, expand }) => {
       init();
       ready();
       expand();
+      console.log('[Telegram] SDK initialized');
       
       // Apply Telegram theme CSS variables
       const theme = getTelegramThemeParams();
@@ -21,8 +23,11 @@
         Object.entries(theme).forEach(([key, value]) => {
           root.style.setProperty(`--tg-theme-${key}`, value);
         });
+        console.log('[Telegram] Theme applied:', theme);
       }
     });
+  } else {
+    console.log('[Telegram] Not a Mini App, using web auth');
   }
 
   createRoot(document.getElementById("root")!).render(

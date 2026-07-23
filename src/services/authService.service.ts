@@ -35,12 +35,21 @@ export const authService = {
 
     // Telegram Mini App login
     async telegramLogin(initData: string): Promise<User> {
-        // Call /auth/telegram with initData from Telegram
-        const response = await apiClient.post<AuthResponse>('/auth/telegram', { initData });
+        console.log('[Telegram] telegramLogin called, initData length:', initData.length);
         
-        // After login, get the user from /me
-        const user = await userService.getCurrentUser();
-        return user;
+        // Step 1: POST /auth/telegram
+        const response = await apiClient.post<AuthResponse>('/auth/telegram', { initData });
+        console.log('[Telegram] /auth/telegram response:', response);
+        
+        // Step 2: GET /me (check if cookie was set)
+        try {
+            const user = await userService.getCurrentUser();
+            console.log('[Telegram] /me response:', user);
+            return user;
+        } catch (meError: any) {
+            console.error('[Telegram] /me failed after login:', meError?.status, meError?.message);
+            throw meError;
+        }
     },
 
     // Login (if still needed for explicit login with credentials)

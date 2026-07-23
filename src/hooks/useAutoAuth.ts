@@ -32,19 +32,39 @@ export function useAutoAuth(): UseAutoAuthReturn {
             setError(null);
 
             // Check if we're in Telegram Mini App
-            if (isTelegramMiniApp()) {
+            const tgDetected = isTelegramMiniApp();
+            console.log('[Telegram] isTelegramMiniApp:', tgDetected);
+            console.log('[Telegram] window.Telegram:', !!(window as any).Telegram);
+
+            if (tgDetected) {
                 const initData = getTelegramInitData();
+                console.log('[Telegram] initData length:', initData?.length);
+                console.log('[Telegram] initData preview:', initData?.substring(0, 80));
+
                 if (initData) {
-                    const telegramUser = await authService.telegramLogin(initData);
-                    setUser(telegramUser);
-                    setAuthenticated(true);
-                    setAuthStatus(true);
-                    setRetryCount(0);
-                    return;
+                    try {
+                        console.log('[Telegram] Calling POST /auth/telegram...');
+                        const telegramUser = await authService.telegramLogin(initData);
+                        console.log('[Telegram] Login success:', telegramUser);
+                        setUser(telegramUser);
+                        setAuthenticated(true);
+                        setAuthStatus(true);
+                        setRetryCount(0);
+                        return;
+                    } catch (tgError: any) {
+                        console.error('[Telegram] Login FAILED:', tgError);
+                        console.error('[Telegram] Error message:', tgError?.message);
+                        console.error('[Telegram] Error status:', tgError?.status);
+                        console.error('[Telegram] Error data:', tgError?.data);
+                        // Fall through to web auth
+                    }
+                } else {
+                    console.warn('[Telegram] Mini App detected but initData is empty/null');
                 }
             }
 
             // Original web auth flow
+            console.log('[Auth] Falling back to web auth flow');
             const currentUser = await authService.checkAuth();
 
             if (currentUser) {
@@ -52,7 +72,7 @@ export function useAutoAuth(): UseAutoAuthReturn {
                 setUser(currentUser);
                 setAuthenticated(true);
                 setAuthStatus(true);
-                clearTemporarySessionId(); // Clear temp session after successful auth
+                clearTemporarySessionId();
                 setRetryCount(0);
             } else {
                 // No valid session, try auto-login (calls /login with no body)
@@ -63,18 +83,17 @@ export function useAutoAuth(): UseAutoAuthReturn {
                         setUser(loggedInUser);
                         setAuthenticated(true);
                         setAuthStatus(true);
-                        clearTemporarySessionId(); // Clear temp session after successful auth
+                        clearTemporarySessionId();
                         setRetryCount(0);
                     } else {
                         throw new Error('Auto-login failed: No user data returned');
                     }
                 } catch (autoLoginError: any) {
-                    // If auto-login fails and we haven't exceeded retries, retry
                     if (!isRetry && retryCount < MAX_RETRIES) {
                         setRetryCount(prev => prev + 1);
                         setTimeout(() => {
                             performAuth(true);
-                        }, RETRY_DELAY * (retryCount + 1)); // Exponential backoff
+                        }, RETRY_DELAY * (retryCount + 1));
                         return;
                     }
                     throw autoLoginError;
@@ -82,14 +101,10 @@ export function useAutoAuth(): UseAutoAuthReturn {
             }
         } catch (err: any) {
             const error = err instanceof Error ? err : new Error(err?.message || 'Authentication failed');
+            console.error('[Auth] Authentication failed:', error);
             setError(error);
             setAuthenticated(false);
             setAuthStatus(false);
-            
-            // Don't block the app if auth fails - allow limited functionality
-            if (import.meta.env.DEV) {
-                console.warn('Auto-authentication failed:', error);
-            }
         } finally {
             setLoading(false);
         }
