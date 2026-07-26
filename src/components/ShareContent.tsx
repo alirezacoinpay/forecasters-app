@@ -14,35 +14,12 @@ interface ShareContentProps {
 export function ShareContent({ predictionId, onClose }: ShareContentProps) {
     const t = useTranslation();
     const [phoneNumber, setPhoneNumber] = useState('');
-    const shareUrl = `${import.meta.env.VITE_APP_URL}/prediction/${predictionId}`;
+    const appUrl = import.meta.env.VITE_APP_URL.replace(/\/$/, '');
 
-    const handleSend = async () => {
-        if (!phoneNumber.trim()) {
-            return;
-        }
+    const shareUrl = `${appUrl}?prediction=${predictionId}`;
 
-        try {
-            await shareService.sendSms({
-                prediction_id: predictionId,
-                mobile: phoneNumber.trim(),
-            });
-            
-            toast.success(t('success.sentToPhone', { phoneNumber }), {
-                duration: 2000,
-            });
-            setPhoneNumber('');
-            if (onClose) {
-                setTimeout(() => {
-                    onClose();
-                }, 500);
-            }
-        } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || t('errors.smsError');
-            toast.error(errorMessage, {
-                duration: 3000,
-            });
-        }
-    };
+    const shareDisplayUrl = `${appUrl.replace(/^https?:\/\//, '')}?prediction=${predictionId}`;
+
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(shareUrl);
@@ -92,7 +69,7 @@ Thousands are already casting their predictions. Join them, make your call, and 
                 <label className="text-sm text-muted-foreground">{t('ui.labels.postLink')}</label>
                 <div className="flex gap-2">
                     <Input
-                        value={shareUrl}
+                        value={shareDisplayUrl}
                         readOnly
                         className="bg-gray-50"
                         dir="ltr"
