@@ -14,7 +14,7 @@ interface ShareContentProps {
 export function ShareContent({ predictionId, onClose }: ShareContentProps) {
     const t = useTranslation();
     const [phoneNumber, setPhoneNumber] = useState('');
-    const shareUrl = `https://example.com/prediction/${predictionId}`;
+    const shareUrl = `${import.meta.env.VITE_APP_URL}/prediction/${predictionId}`;
 
     const handleSend = async () => {
         if (!phoneNumber.trim()) {
@@ -55,13 +55,17 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
         const shareUrl = `https://t.me/forecasters_top_bot/app?startapp=prediction_${predictionId}`;
 
         const text = encodeURIComponent(
-            `🔥 I found an interesting prediction on Forecasters!
+            `🔥 Just found a crazy prediction on Forecasters
 
-                        Think you know what will happen next?
-                        
-                        Cast your prediction, compare it with thousands of others, and see who's right when the outcome is revealed.
-                        
-                        👇 Join the prediction`
+Think you can beat the crowd?
+
+Thousands are already casting their predictions. Join them, make your call, and see who’s right when the result drops.
+
+📱 Open the Forecasters Mini App right inside Telegram:
+
+👉 https://t.me/forecasters_top_bot
+
+👇 Tap & predict now`
         );
 
         const url = encodeURIComponent(shareUrl);
@@ -117,24 +121,6 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
                             <Send className="w-5 h-5 text-[#229ED9]" />
                         </div>
                         <span className="text-xs">Telegram</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-green-600" />
-                        </div>
-                        <span className="text-xs">{t('ui.labels.whatsapp')}</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span className="text-xs">{t('ui.labels.twitter')}</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-gray-600" />
-                        </div>
-                        <span className="text-xs">{t('ui.labels.other')}</span>
                     </button>
                 </div>
             </div>
