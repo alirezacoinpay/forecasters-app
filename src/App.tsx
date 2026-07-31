@@ -17,25 +17,42 @@ const CreatePredictionPage = lazy(() => import('./components/CreatePredictionPag
 const SearchPage = lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
 const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
 
-// Parse URL synchronously on module load to get deep link prediction ID
-const parseInitialUrl = (): number | undefined => {
-    if (typeof window === 'undefined') return undefined;
-    const urlParams = new URLSearchParams(window.location.search);
-    const predictionParam = urlParams.get('prediction') || urlParams.get('predictionId');
+const parseInitialUrl = (): number |undefined => {
+    if (typeof window === "undefined") return;
 
-    if (predictionParam) {
-        const predictionId = parseInt(predictionParam, 10);
-        if (!isNaN(predictionId) && predictionId > 0) {
-            const newUrl = new URL(window.location.href);
-            newUrl.searchParams.delete('prediction');
-            newUrl.searchParams.delete('predictionId');
-            window.history.replaceState({}, '', newUrl.toString());
-            return predictionId;
+    // Telegram deep link
+    const startParam =
+        window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+
+    if (startParam?.startsWith("prediction_")) {
+        const id = parseInt(startParam.substring("prediction_".length), 10);
+        if (!isNaN(id)) {
+            return id;
         }
     }
+
+    // Browser deep link
+    const params = new URLSearchParams(window.location.search);
+
+    const prediction =
+        params.get("prediction") ??
+        params.get("predictionId");
+
+    if (prediction) {
+        const id = parseInt(prediction, 10);
+
+        if (!isNaN(id)) {
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete("prediction");
+            newUrl.searchParams.delete("predictionId");
+            window.history.replaceState({}, "", newUrl.toString());
+
+            return id;
+        }
+    }
+
     return undefined;
 };
-
 export default function App() {
     const { user, loading: authLoading, authenticated } = useAutoAuth();
     const t = useTranslation();
