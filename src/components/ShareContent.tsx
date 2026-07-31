@@ -29,7 +29,7 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
     };
 
     const handleTelegramShare = () => {
-        const shareUrl = `https://t.me/forecasters_top_bot/app?startapp=prediction_${predictionId}`;
+        const shareUrl = `https://t.me/forecasters_top_bot?startapp=prediction_${predictionId}`;
 
         const text = encodeURIComponent(
             `🔥 Just found a crazy prediction on Forecasters
