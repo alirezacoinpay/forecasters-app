@@ -14,35 +14,12 @@ interface ShareContentProps {
 export function ShareContent({ predictionId, onClose }: ShareContentProps) {
     const t = useTranslation();
     const [phoneNumber, setPhoneNumber] = useState('');
-    const shareUrl = `https://example.com/prediction/${predictionId}`;
+    const appUrl = import.meta.env.VITE_APP_URL.replace(/\/$/, '');
 
-    const handleSend = async () => {
-        if (!phoneNumber.trim()) {
-            return;
-        }
+    const shareUrl = `${appUrl}?prediction=${predictionId}`;
 
-        try {
-            await shareService.sendSms({
-                prediction_id: predictionId,
-                mobile: phoneNumber.trim(),
-            });
-            
-            toast.success(t('success.sentToPhone', { phoneNumber }), {
-                duration: 2000,
-            });
-            setPhoneNumber('');
-            if (onClose) {
-                setTimeout(() => {
-                    onClose();
-                }, 500);
-            }
-        } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || t('errors.smsError');
-            toast.error(errorMessage, {
-                duration: 3000,
-            });
-        }
-    };
+    const shareDisplayUrl = `${appUrl.replace(/^https?:\/\//, '')}?prediction=${predictionId}`;
+
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(shareUrl);
@@ -50,6 +27,19 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
             duration: 2000,
         });
     };
+    const handleTelegramShare = () => {
+        // Official Telegram Mini App startapp parameter
+        const directLink = `https://t.me/forecasters_top_bot/feed?startapp=prediction_${predictionId}`;
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(directLink)}`;
+
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink(shareUrl);
+            return;
+        }
+
+        window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    };
+
 
     return (
         <div className="space-y-2">
@@ -58,7 +48,7 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
                 <label className="text-sm text-muted-foreground">{t('ui.labels.postLink')}</label>
                 <div className="flex gap-2">
                     <Input
-                        value={shareUrl}
+                        value={shareDisplayUrl}
                         readOnly
                         className="bg-gray-50"
                         dir="ltr"
@@ -79,29 +69,14 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
             <div className="pt-2">
                 <p className="text-sm text-muted-foreground mb-3">{t('ui.labels.shareSocial')}</p>
                 <div className="grid grid-cols-4 gap-3">
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-blue-600" />
+                    <button
+                        onClick={handleTelegramShare}
+                        className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                        <div className="w-12 h-12 rounded-full bg-[#229ED9]/10 flex items-center justify-center">
+                            <Send className="w-5 h-5 text-[#229ED9]" />
                         </div>
-                        <span className="text-xs">{t('ui.labels.telegram')}</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-green-600" />
-                        </div>
-                        <span className="text-xs">{t('ui.labels.whatsapp')}</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span className="text-xs">{t('ui.labels.twitter')}</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                            <LinkIcon className="w-5 h-5 text-gray-600" />
-                        </div>
-                        <span className="text-xs">{t('ui.labels.other')}</span>
+                        <span className="text-xs">Telegram</span>
                     </button>
                 </div>
             </div>

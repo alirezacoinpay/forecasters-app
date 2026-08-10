@@ -57,6 +57,31 @@ export function ShareBottomSheet({ predictionId, onClose }: ShareBottomSheetProp
         });
     }, []);
 
+    const handleTelegramShare = () => {
+        const shareUrl = `https://t.me/ForecastersBot/app?startapp=prediction_${predictionId}`;
+
+        const text = encodeURIComponent(
+            '🔮 Check out this prediction on Forecasters!'
+        );
+
+        const url = encodeURIComponent(shareUrl);
+
+        // Telegram Mini App
+        if (window.Telegram?.WebApp) {
+            window.open(
+                `https://t.me/share/url?url=${url}&text=${text}`,
+                '_blank'
+            );
+            return;
+        }
+
+        // Browser fallback
+        window.open(
+            `https://t.me/share/url?url=${url}&text=${text}`,
+            '_blank'
+        );
+    };
+
     const handleSend = async () => {
         if (!phoneNumber.trim()) {
             return;
@@ -330,11 +355,14 @@ export function ShareBottomSheet({ predictionId, onClose }: ShareBottomSheetProp
                         <div className="pt-2">
                             <p className="text-sm text-muted-foreground mb-3">{t('ui.labels.shareSocial')}</p>
                             <div className="grid grid-cols-4 gap-3">
-                                <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <LinkIcon className="w-5 h-5 text-blue-600" />
+                                <button
+                                    onClick={handleTelegramShare}
+                                    className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-[#229ED9]/10 flex items-center justify-center">
+                                        <Send className="w-5 h-5 text-[#229ED9]" />
                                     </div>
-                                    <span className="text-xs">{t('ui.labels.telegram')}</span>
+                                    <span className="text-xs">Telegram</span>
                                 </button>
                                 <button className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
                                     <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">

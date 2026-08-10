@@ -2070,3 +2070,14 @@ html {
 .text-yekanBakh {
     font-family: yekanbakh, sans-serif;
 }
+
+/* Telegram Mini App Theme Variables */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #2481cc;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f0f0f0;
+}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService.service';
 import { User } from '../types/api';
 import { setAuthStatus, clearTemporarySessionId } from '../utils/sessionStorage';
+import { isTelegramMiniApp, getTelegramInitData } from '../utils/telegram';
 
 interface UseAutoAuthReturn {
     user: User | null;
@@ -12,12 +13,8 @@ interface UseAutoAuthReturn {
 }
 
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+const RETRY_DELAY = 1000;
 
-/**
- * Hook for automatic authentication
- * Checks authentication by calling /me endpoint, automatically logs in if needed
- */
 export function useAutoAuth(): UseAutoAuthReturn {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -30,37 +27,68 @@ export function useAutoAuth(): UseAutoAuthReturn {
             setLoading(true);
             setError(null);
 
-            // First, check if we have a valid cookie by calling /me
+            // FRESH check every time - don't cache
+            const tgDetected = isTelegramMiniApp();
+            console.log('[Auth] isTelegramMiniApp:', tgDetected);
+
+            if (tgDetected) {
+                const initData = getTelegramInitData();
+                console.log('[Auth] initData:', initData ? `${initData.length} chars` : 'EMPTY');
+
+                if (initData && initData.length > 0) {
+                    try {
+                        console.log('[Auth] Attempting Telegram login...');
+                        const telegramUser = await authService.telegramLogin(initData);
+                        console.log('[Auth] Telegram login SUCCESS:', telegramUser);
+                        setUser(telegramUser);
+                        setAuthenticated(true);
+                        setAuthStatus(true);
+                        setRetryCount(0);
+                        return;
+                    } catch (tgError: any) {
+                        console.error('[Auth] Telegram login FAILED:', {
+                            message: tgError?.message,
+                            status: tgError?.status,
+                            data: tgError?.data,
+                        });
+                        // Fall through to web auth
+                    }
+                }
+            }
+
+            // Web auth flow - check existing session first
+            console.log('[Auth] Trying web auth...');
             const currentUser = await authService.checkAuth();
 
             if (currentUser) {
-                // We have a valid session
+                console.log('[Auth] Existing session valid:', currentUser);
                 setUser(currentUser);
                 setAuthenticated(true);
                 setAuthStatus(true);
-                clearTemporarySessionId(); // Clear temp session after successful auth
+                clearTemporarySessionId();
                 setRetryCount(0);
             } else {
-                // No valid session, try auto-login (calls /login with no body)
+                console.log('[Auth] No session, trying auto-login...');
                 try {
                     const loggedInUser = await authService.autoLogin();
                     
                     if (loggedInUser) {
+                        console.log('[Auth] Auto-login SUCCESS:', loggedInUser);
                         setUser(loggedInUser);
                         setAuthenticated(true);
                         setAuthStatus(true);
-                        clearTemporarySessionId(); // Clear temp session after successful auth
+                        clearTemporarySessionId();
                         setRetryCount(0);
                     } else {
                         throw new Error('Auto-login failed: No user data returned');
                     }
                 } catch (autoLoginError: any) {
-                    // If auto-login fails and we haven't exceeded retries, retry
+                    console.error('[Auth] Auto-login failed:', autoLoginError);
                     if (!isRetry && retryCount < MAX_RETRIES) {
                         setRetryCount(prev => prev + 1);
                         setTimeout(() => {
                             performAuth(true);
-                        }, RETRY_DELAY * (retryCount + 1)); // Exponential backoff
+                        }, RETRY_DELAY * (retryCount + 1));
                         return;
                     }
                     throw autoLoginError;
@@ -68,14 +96,10 @@ export function useAutoAuth(): UseAutoAuthReturn {
             }
         } catch (err: any) {
             const error = err instanceof Error ? err : new Error(err?.message || 'Authentication failed');
+            console.error('[Auth] Final error:', error);
             setError(error);
             setAuthenticated(false);
             setAuthStatus(false);
-            
-            // Don't block the app if auth fails - allow limited functionality
-            if (import.meta.env.DEV) {
-                console.warn('Auto-authentication failed:', error);
-            }
         } finally {
             setLoading(false);
         }
@@ -88,7 +112,7 @@ export function useAutoAuth(): UseAutoAuthReturn {
 
     useEffect(() => {
         performAuth(false);
-    }, []); // Only run on mount
+    }, []);
 
     return {
         user,
@@ -98,4 +122,3 @@ export function useAutoAuth(): UseAutoAuthReturn {
         retry,
     };
 }
-

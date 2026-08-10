@@ -42,7 +42,7 @@ const LogoSearch = ({
         >
             {/* Left side */}
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <img src={logo} alt="logo" className="h-5 w-auto opacity-70 shrink-0" />
+              <img src={logo} alt="logo" className="h-7 w-auto opacity-70 shrink-0" />
               {inputMode ? (
                 <input
                     ref={inputRef}
