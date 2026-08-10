@@ -27,40 +27,19 @@ export function ShareContent({ predictionId, onClose }: ShareContentProps) {
             duration: 2000,
         });
     };
-
     const handleTelegramShare = () => {
-        const shareUrl = `https://t.me/forecasters_top_bot?startapp=prediction_${predictionId}`;
+        // Official Telegram Mini App startapp parameter
+        const directLink = `https://t.me/forecasters_top_bot/feed?startapp=prediction_${predictionId}`;
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(directLink)}`;
 
-        const text = encodeURIComponent(
-            `🔥 Just found a crazy prediction on Forecasters
-
-Think you can beat the crowd?
-
-Thousands are already casting their predictions. Join them, make your call, and see who’s right when the result drops.
-
-📱 Open the Forecasters Mini App right inside Telegram:
-
-👉 https://t.me/forecasters_top_bot
-
-👇 Tap & predict now`
-        );
-
-        const url = encodeURIComponent(shareUrl);
-
-        if (window.Telegram?.WebApp) {
-            window.open(
-                `https://t.me/share/url?url=${url}&text=${text}`,
-                '_blank'
-            );
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink(shareUrl);
             return;
         }
 
-        // Browser fallback
-        window.open(
-            `https://t.me/share/url?url=${url}&text=${text}`,
-            '_blank'
-        );
+        window.open(shareUrl, '_blank', 'noopener,noreferrer');
     };
+
 
     return (
         <div className="space-y-2">

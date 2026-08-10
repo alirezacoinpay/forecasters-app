@@ -9,7 +9,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTopics, DEFAULT_TOPIC_ID } from './hooks/useTopics';
 import { useAutoAuth } from './hooks/useAutoAuth';
 import { Tag } from "./types/api.ts";
-import {useTranslation} from "./hooks/useTranslation.ts";
+import { useTranslation } from "./hooks/useTranslation.ts";
 
 // Code splitting: Lazy load heavy components
 const CommentsBottomSheet = lazy(() => import('./components/CommentsBottomSheet').then(m => ({ default: m.CommentsBottomSheet })));
@@ -17,33 +17,37 @@ const CreatePredictionPage = lazy(() => import('./components/CreatePredictionPag
 const SearchPage = lazy(() => import('./components/SearchPage').then(m => ({ default: m.SearchPage })));
 const ProfileView = lazy(() => import('./components/ProfileView').then(m => ({ default: m.ProfileView })));
 
-const parseInitialUrl = (): number |undefined => {
+const parseInitialUrl = (): number | undefined => {
     if (typeof window === "undefined") return;
 
-    // Telegram deep link
-    const startParam =
-        window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+    // 1. Handle Telegram WebApp start_param (Inside Telegram Mini App)
+    const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
 
-    if (startParam?.startsWith("prediction_")) {
-        const id = parseInt(startParam.substring("prediction_".length), 10);
-        if (!isNaN(id)) {
-            return id;
+    if (startParam) {
+        // Matches "predictions_77", "prediction_77", "predictions=77", or "77"
+        const match = startParam.match(/(?:predictions?_|=)?(\d+)/);
+        if (match && match[1]) {
+            const id = parseInt(match[1], 10);
+            if (!isNaN(id) && id > 0) {
+                return id;
+            }
         }
     }
 
-    // Browser deep link
+    // 2. Handle standard browser URL parameters (Outside Telegram / Web fallback)
     const params = new URLSearchParams(window.location.search);
-
-    const prediction =
+    const rawPrediction =
         params.get("prediction") ??
+        params.get("predictions") ??
         params.get("predictionId");
 
-    if (prediction) {
-        const id = parseInt(prediction, 10);
-
-        if (!isNaN(id)) {
+    if (rawPrediction) {
+        const id = parseInt(rawPrediction, 10);
+        if (!isNaN(id) && id > 0) {
+            // Clean up the URL search parameters without reloading
             const newUrl = new URL(window.location.href);
             newUrl.searchParams.delete("prediction");
+            newUrl.searchParams.delete("predictions");
             newUrl.searchParams.delete("predictionId");
             window.history.replaceState({}, "", newUrl.toString());
 
@@ -53,6 +57,7 @@ const parseInitialUrl = (): number |undefined => {
 
     return undefined;
 };
+
 export default function App() {
     const { user, loading: authLoading, authenticated } = useAutoAuth();
     const t = useTranslation();
@@ -118,7 +123,10 @@ export default function App() {
     useEffect(() => {
         const handlePopState = () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const predictionParam = urlParams.get('prediction') || urlParams.get('predictionId');
+            const predictionParam =
+                urlParams.get('predictions') ||
+                urlParams.get('prediction') ||
+                urlParams.get('predictionId');
 
             if (predictionParam) {
                 const predictionId = parseInt(predictionParam, 10);
@@ -128,6 +136,7 @@ export default function App() {
                     setSelectedTopicId(DEFAULT_TOPIC_ID);
 
                     const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.delete('predictions');
                     newUrl.searchParams.delete('prediction');
                     newUrl.searchParams.delete('predictionId');
                     window.history.replaceState({}, '', newUrl.toString());
@@ -173,18 +182,12 @@ export default function App() {
         setSelectedPrediction(prediction);
     };
 
-    // Handle prediction update (after vote or like)
-    const handlePredictionUpdate = (updatedPrediction: Prediction) => {
-        // This will be passed down to PredictionCard
-        // The FeedView handles updating the predictions list
-    };
-
     // Show create prediction page
     if (showAddPrediction) {
         return (
             <Suspense fallback={
                 <div className="min-h-screen bg-background flex items-center justify-center">
-                    <div className="text-muted-foreground">{ t('loading.loading')}</div>
+                    <div className="text-muted-foreground">{t('loading.loading')}</div>
                 </div>
             }>
                 <CreatePredictionPage
@@ -203,30 +206,28 @@ export default function App() {
     // Show search page
     if (showSearchPage) {
         return (
-            <>
-                <Suspense fallback={
-                    <div className="min-h-screen bg-background flex items-center justify-center">
-                        <div className="text-muted-foreground">Loading...</div>
-                    </div>
-                }>
-                    <SearchPage
-                        onClose={() => {
-                            setShowSearchPage(false);
-                            setSearchPageTag(undefined);
-                        }}
-                        onTagSelected={handleSearchTagSelected}
-                        selectedTag={searchPageTag}
-                        onPredictionClick={(prediction) => {
-                            setShowSearchPage(false);
-                            setSearchPageTag(undefined);
-                            setDeepLinkPredictionId(prediction.id);
-                            setIsDeepLinkLoading(true);
-                            setSelectedTopicId(DEFAULT_TOPIC_ID);
-                        }}
-                        onClearSelectedTag={() => setSearchPageTag(undefined)}
-                    />
-                </Suspense>
-            </>
+            <Suspense fallback={
+                <div className="min-h-screen bg-background flex items-center justify-center">
+                    <div className="text-muted-foreground">Loading...</div>
+                </div>
+            }>
+                <SearchPage
+                    onClose={() => {
+                        setShowSearchPage(false);
+                        setSearchPageTag(undefined);
+                    }}
+                    onTagSelected={handleSearchTagSelected}
+                    selectedTag={searchPageTag}
+                    onPredictionClick={(prediction) => {
+                        setShowSearchPage(false);
+                        setSearchPageTag(undefined);
+                        setDeepLinkPredictionId(prediction.id);
+                        setIsDeepLinkLoading(true);
+                        setSelectedTopicId(DEFAULT_TOPIC_ID);
+                    }}
+                    onClearSelectedTag={() => setSearchPageTag(undefined)}
+                />
+            </Suspense>
         );
     }
 
